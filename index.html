@@ -1,1 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Neighborhoods of Gilneas</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body { height: 100%; margin: 0; }
 
+    #map {
+      position: absolute;
+      top: 68px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000;
+    }
+
+    .custom-popup {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+
+    /* Zoomed-in label with emoji */
+    .label-with-emoji {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0,0,0,0.75);
+      color: white;
+      padding: 2px 6px 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: Arial, sans-serif;
+      border: 1px solid rgba(255,255,255,0.6);
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .label-with-emoji .label-emoji {
+      margin-right: 4px;
+      position: relative;
+      transform: translateX(-4px);
+    }
+
+    .label-with-emoji .label-text {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Zoomed-out emoji-only icon */
+    .emoji-dot {
+      font-size: 18px;
+      line-height: 18px;
+      text-align: center;
+      text-shadow: 0 0 3px rgba(0,0,0,0.8);
+    }
+
+    /* FULLSCREEN LOADING OVERLAY */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    /* Popup Styling - WOW-ish! */
+    .leaflet-popup-content-wrapper {
+      background: rgba(0, 0, 0, 0.85) !important;
+      color: #f2f2f2 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      backdrop-filter: blur(3px);
+      padding: 4px;
+    }
+    .leaflet-popup-content {
+      color: #f2f2f2 !important;
+      font-family: Arial, sans-serif;
+      line-height: 1.35;
+    }
+    .leaflet-popup-tip-container,
+    .leaflet-popup-tip {
+      display: none !important;
+    }
+    .title-pop {
+      color: #fbac3a;
+      font-weight: 600;
+    }
+
+    .popup-divider {
+      border: 0;
+      border-top: 1px solid rgba(255,255,255,0.25);
+      margin: 6px 0;
+    }
+
+    /* Top bar */
+    #top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: rgba(0, 0, 0, 0.9);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 9000;
+      font-family: Arial, sans-serif;
+      color: #f5f5f5;
+    }
+    #top-bar .top-title {
+      font-weight: bold;
+    }
+    #top-bar .top-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #top-bar .top-links a {
+      color: #ccc;
+      margin-left: 12px;
+      text-decoration: none;
+    }
+
+    /* Left side of top bar (label + dropdown) */
+    #top-bar .top-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 68px;
+    }
+    .top-logo {
+      height: calc(100% - 6px);
+      margin: 3px 0;
+      width: auto;
+      object-fit: contain;
+    }
+
+    #neighborhood-select {
+      background: #1b1b1b;
+      color: #f5f5f5;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+    }
+    #neighborhood-select:focus {
+      outline: none;
+      border-color: #ffffff;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="top-bar">
+    <div class="top-left">
+      <img src="assets/logo.png" alt="Logo" class="top-logo">
+      <div class="top-title">KoG Housing</div>
+    </div>
+    <div class="top-right">
+      <span style="font-size:12px;">Select Map:</span>
+      <select id="neighborhood-select">
+        <option value="Neighborhood 1">Neighborhood 1</option>
+        <option value="Neighborhood 2">Neighborhood 2</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="loading-screen">Loading...</div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const DATA_URL = 'https://script.google.com/macros/s/AKfycbx4mYuCwK4vJzNZ9tGvc0I_xvtBkQ2XyobdeTKmR0RT_1_WOi4dLNPVEScFxrvrUWVFMQ/exec';
+
+    function showLoadingScreen() {
+      const el = document.getElementById('loading-screen');
+      if (el) el.style.display = 'flex';
+    }
+
+    function hideLoadingScreen() {
+      const el = document.getElementById('loading-screen');
+      if (el) el.style.display = 'none';
+    }
+
+    // Map setup
+    var mapBounds = [[0, 0], [2560, 3840]];
+    var map = L.map('map', {
+      crs: L.CRS.Simple,
+      minZoom: -2,
+      maxZoom: 4,
+      attributionControl: false
+    });
+
+    var imageUrl = 'assets/map.jpg';
+    var imageOverlay = L.imageOverlay(imageUrl, mapBounds).addTo(map);
+    map.fitBounds(mapBounds);
+
+    // Zoomed-out emoji dot
+    function makeEmojiDot(emoji) {
+      var em = emoji || '•'; // fallback if Type is empty
+      return L.divIcon({
+        html: '<div class="emoji-dot">' + em + '</div>',
+        className: '',   // keep default
+        iconSize: [18, 18]
+      });
+    }
+
+    // Zoomed-in label with emoji + title
+    function makeEmojiLabel(emoji, text) {
+      var em = emoji || '';
+      var labelText = text || '';
+      return L.divIcon({
+        html:
+          '<div class="label-with-emoji">' +
+            (em ? '<span class="label-emoji">' + em + '</span>' : '') +
+            '<span class="label-text">' + labelText + '</span>' +
+          '</div>',
+        className: '',
+        iconSize: [80, 22]
+      });
+    }
+
+
+    // Switch from emoji-only to emoji+label at/above this zoom
+    var iconSwitchZoom = 0;
+
+    // Will hold:  marker, zoomOutIcon, zoomInIcon, meta, etc
+    var markers = [];
+
+    function updateIconsForZoom() {
+      var currentZoom = map.getZoom();
+      markers.forEach(function (obj) {
+        if (currentZoom >= iconSwitchZoom) {
+          obj.marker.setIcon(obj.zoomInIcon);
+        } else {
+          obj.marker.setIcon(obj.zoomOutIcon);
+        }
+      });
+    }
+
+    map.on('zoomend', updateIconsForZoom);
+
+    // Remove existing markers from map
+    function clearExistingMarkers() {
+      markers.forEach(function (obj) {
+        map.removeLayer(obj.marker);
+      });
+      markers = [];
+    }
+
+    // Create markers from sheet data
+    function createMarkersFromData(sheetMarkers) {
+      clearExistingMarkers(); // clear old ones when reloading
+
+      sheetMarkers.forEach(function (row) {
+        // Expecting: owner, title, info, x, y, type 
+        var owner = row.owner || '';
+        var title = row.title || 'Unknown';
+        var info  = row.info  || '';
+        var x     = parseFloat(row.x);
+        var y     = parseFloat(row.y);
+        var type  = row.type  || ''; // emoji from Type column
+
+        if (isNaN(x) || isNaN(y)) {
+          console.warn('Skipping row with invalid coords:', row);
+          return;
+        }
+
+        var position = [x, y];
+
+        var zoomOutIcon = makeEmojiDot(type);
+        var zoomInIcon  = makeEmojiLabel(type, title);
+
+        var marker = L.marker(position, { icon: zoomOutIcon }).addTo(map);
+
+        var infoHtml  = info ? info.replace(/\n/g, '<br>') : '';
+        var ownerHtml = owner ? '<i>' + owner + '</i>' : '';
+        var divider   = (owner && infoHtml) ? '<hr class="popup-divider">' : '';
+
+        var popupHtml =
+          '<div class="custom-popup">' +
+            '<span class="title-pop">' + title + '</span><br>' +
+            ownerHtml +
+            divider +
+            infoHtml +
+          '</div>';
+
+        marker
+          .bindPopup(popupHtml, { autoClose: false })
+          .on('mouseover', function () { this.openPopup(); })
+          .on('mouseout', function () { this.closePopup(); });
+
+        markers.push({
+          marker: marker,
+          zoomOutIcon: zoomOutIcon,
+          zoomInIcon: zoomInIcon,
+          owner: owner,
+          title: title,
+          info: info,
+          x: x,
+          y: y,
+          type: type
+        });
+      });
+
+      updateIconsForZoom();
+    }
+
+    // Load a neighborhood/sheet by name
+    function loadNeighborhood(sheetName) {
+      showLoadingScreen();
+
+      var url = DATA_URL + '?sheet=' + encodeURIComponent(sheetName);
+
+      fetch(url)
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(function (data) {
+          // Expecting: { markers: [ { owner, title, info, x, y, type }, ... ] }
+          createMarkersFromData(data.markers || []);
+          hideLoadingScreen();
+        })
+        .catch(function (error) {
+          console.error('Error fetching marker data:', error);
+          hideLoadingScreen();
+        });
+    }
+
+    // Hook up dropdown
+    var neighborhoodSelect = document.getElementById('neighborhood-select');
+    neighborhoodSelect.addEventListener('change', function (e) {
+      var sheetName = e.target.value;
+      loadNeighborhood(sheetName);
+    });
+
+    // Initial load
+    window.addEventListener('load', function () {
+      loadNeighborhood('Neighborhood 1');
+    });
+  </script>
+</body>
+</html>
