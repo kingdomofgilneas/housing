@@ -60,14 +60,61 @@
     #loading-screen {
       position: fixed;
       inset: 0;
-      background: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 28px;
+      z-index: 9999;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+    }
+    
+    #loading-screen .loading-bg {
+      position: absolute;
+      inset: 0;
+      background: url('assets/loadingbackground.png') center/cover no-repeat rgba(0,0,0,0.85);
+      filter: brightness(0.4) blur(2px);
+      z-index: 1;
+    }
+
+    .loading-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .loading-pulse {
+      position: relative;
+      opacity: 0.9;
+      animation: pulse 4.5s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px rgba(0,0,0,0.7));
+    }
+
+    #loading-screen img.loading-pulse {
+      width: 400px !important;
+      height: 400px !important;
+      max-width: none !important;
+      max-height: none !important;
+      object-fit: contain;
+      display: block;
+    }
+
+    .loading-text {    
+      font-size: 40px;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      text-shadow: 0 0 10px rgba(0,0,0,0.9);
+      font-weight: bold;
+      z-index: 3;
+      pointer-events: none;
+    }
+    
+    /* Pulse animation */
+    @keyframes pulse {
+      0%   { transform: scale(1.00); opacity: 0.92; }
+      50%  { transform: scale(1.03); opacity: 1.0; }
+      100% { transform: scale(1.00); opacity: 0.92; }
     }
 
     /* Popup Styling - WOW-ish! */
@@ -130,7 +177,7 @@
       text-decoration: none;
     }
 
-    /* Left side of top bar (label + dropdown) */
+    /* Left side of top bar (logo + title) */
     #top-bar .top-left {
       display: flex;
       align-items: center;
@@ -175,7 +222,14 @@
     </div>
   </div>
 
-  <div id="loading-screen">Loading...</div>
+  <div id="loading-screen">
+    <div class="loading-bg"></div>
+    <div class="loading-content">
+      <img src="assets/loadinglogo.png" alt="Loading…" class="loading-pulse">
+      <div class="loading-text">LOADING</div>
+    </div>
+  </div>
+
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -230,11 +284,10 @@
       });
     }
 
-
     // Switch from emoji-only to emoji+label at/above this zoom
     var iconSwitchZoom = 0;
 
-    // Will hold:  marker, zoomOutIcon, zoomInIcon, meta, etc
+    // Will hold: marker, zoomOutIcon, zoomInIcon, meta, etc
     var markers = [];
 
     function updateIconsForZoom() {
