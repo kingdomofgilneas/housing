@@ -35,6 +35,7 @@
       border: 1px solid rgba(255,255,255,0.6);
       white-space: nowrap;
       position: relative;
+      transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
     }
 
     .label-with-emoji .label-emoji {
@@ -54,6 +55,27 @@
       line-height: 18px;
       text-align: center;
       text-shadow: 0 0 3px rgba(0,0,0,0.8);
+      transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease, font-size 0.15s ease;
+    }
+
+    /* Highlight / dim marker states */
+    .marker-highlight {
+      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
+      opacity: 1;
+    }
+
+    /* Actually scale the inner emoji/label */
+    .marker-highlight .emoji-dot {
+      font-size: 26px;
+      line-height: 26px;
+    }
+
+    .marker-highlight .label-with-emoji {
+      transform: scale(1.5);
+    }
+
+    .marker-dim {
+      opacity: 0.45;
     }
 
     /* FULLSCREEN LOADING OVERLAY */
@@ -205,6 +227,31 @@
       border-color: #ffffff;
     }
 
+    /* Search box styling */
+    #search-input {
+      background: #111;
+      color: #f5f5f5;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+      min-width: 160px;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    #search-input::placeholder {
+      color: #888;
+    }
+    #search-input:focus {
+      outline: none;
+    }
+
+    /* Focus style */
+    #search-input.search-visual-focus {
+      border-color: #ffffff;
+      box-shadow: 0 0 6px rgba(255,255,255,0.5);
+    }
+
   </style>
 </head>
 <body>
@@ -219,6 +266,7 @@
         <option value="Neighborhood 1">Neighborhood 1</option>
         <option value="Neighborhood 2">Neighborhood 2</option>
       </select>
+      <input id="search-input" type="text" placeholder="Search plots...">
     </div>
   </div>
 
@@ -233,19 +281,20 @@
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const DATA_URL = 'https://script.google.com/macros/s/AKfycbx4mYuCwK4vJzNZ9tGvc0I_xvtBkQ2XyobdeTKmR0RT_1_WOi4dLNPVEScFxrvrUWVFMQ/exec';
-
+  
     function showLoadingScreen() {
       const el = document.getElementById('loading-screen');
       if (el) el.style.display = 'flex';
     }
-
+  
     function hideLoadingScreen() {
       const el = document.getElementById('loading-screen');
       if (el) el.style.display = 'none';
     }
-
+  
     // Map setup
     var mapBounds = [[0, 0], [2560, 3840]];
     var map = L.map('map', {
@@ -254,11 +303,11 @@
       maxZoom: 4,
       attributionControl: false
     });
-
+  
     var imageUrl = 'assets/map.jpg';
     var imageOverlay = L.imageOverlay(imageUrl, mapBounds).addTo(map);
     map.fitBounds(mapBounds);
-
+  
     // Zoomed-out emoji dot
     function makeEmojiDot(emoji) {
       var em = emoji || '•'; // fallback if Type is empty
@@ -268,7 +317,7 @@
         iconSize: [18, 18]
       });
     }
-
+  
     // Zoomed-in label with emoji + title
     function makeEmojiLabel(emoji, text) {
       var em = emoji || '';
@@ -283,15 +332,16 @@
         iconSize: [80, 22]
       });
     }
-
+  
     // Switch from emoji-only to emoji+label at/above this zoom
     var iconSwitchZoom = 0;
-
+  
     // Will hold: marker, zoomOutIcon, zoomInIcon, meta, etc
     var markers = [];
-
+  
     function updateIconsForZoom() {
       var currentZoom = map.getZoom();
+  
       markers.forEach(function (obj) {
         if (currentZoom >= iconSwitchZoom) {
           obj.marker.setIcon(obj.zoomInIcon);
@@ -299,10 +349,16 @@
           obj.marker.setIcon(obj.zoomOutIcon);
         }
       });
+  
+      // Reapply search highlight
+      var searchInput = document.getElementById('search-input');
+      if (searchInput && searchInput.value.trim() !== '') {
+        applySearchHighlight(searchInput.value);
+      }
     }
-
+  
     map.on('zoomend', updateIconsForZoom);
-
+  
     // Remove existing markers from map
     function clearExistingMarkers() {
       markers.forEach(function (obj) {
@@ -310,11 +366,11 @@
       });
       markers = [];
     }
-
+  
     // Create markers from sheet data
     function createMarkersFromData(sheetMarkers) {
-      clearExistingMarkers(); // clear old ones when reloading
-
+      clearExistingMarkers();
+  
       sheetMarkers.forEach(function (row) {
         // Expecting: owner, title, info, x, y, type 
         var owner = row.owner || '';
@@ -323,23 +379,23 @@
         var x     = parseFloat(row.x);
         var y     = parseFloat(row.y);
         var type  = row.type  || ''; // emoji from Type column
-
+  
         if (isNaN(x) || isNaN(y)) {
           console.warn('Skipping row with invalid coords:', row);
           return;
         }
-
+  
         var position = [x, y];
-
+  
         var zoomOutIcon = makeEmojiDot(type);
         var zoomInIcon  = makeEmojiLabel(type, title);
-
+  
         var marker = L.marker(position, { icon: zoomOutIcon }).addTo(map);
-
+  
         var infoHtml  = info ? info.replace(/\n/g, '<br>') : '';
         var ownerHtml = owner ? '<i>' + owner + '</i>' : '';
         var divider   = (owner && infoHtml) ? '<hr class="popup-divider">' : '';
-
+  
         var popupHtml =
           '<div class="custom-popup">' +
             '<span class="title-pop">' + title + '</span><br>' +
@@ -347,12 +403,12 @@
             divider +
             infoHtml +
           '</div>';
-
+  
         marker
           .bindPopup(popupHtml, { autoClose: false })
           .on('mouseover', function () { this.openPopup(); })
           .on('mouseout', function () { this.closePopup(); });
-
+  
         markers.push({
           marker: marker,
           zoomOutIcon: zoomOutIcon,
@@ -365,16 +421,22 @@
           type: type
         });
       });
-
+  
       updateIconsForZoom();
+  
+      // Re-apply any current search filter after new data loads (no panning)
+      var searchInputLocal = document.getElementById('search-input');
+      if (searchInputLocal && searchInputLocal.value.trim() !== '') {
+        applySearchHighlight(searchInputLocal.value);
+      }
     }
-
+  
     // Load a neighborhood/sheet by name
     function loadNeighborhood(sheetName) {
       showLoadingScreen();
-
+  
       var url = DATA_URL + '?sheet=' + encodeURIComponent(sheetName);
-
+  
       fetch(url)
         .then(function (response) {
           if (!response.ok) {
@@ -392,18 +454,76 @@
           hideLoadingScreen();
         });
     }
-
-    // Hook up dropdown
+  
+    // Search and Highlight
+    function applySearchHighlight(query) {
+      var q = (query || '').trim().toLowerCase();
+  
+      markers.forEach(function (obj) {
+        var text = (
+          (obj.title || '') + ' ' +
+          (obj.owner || '') + ' ' +
+          (obj.info || '')
+        ).toLowerCase();
+  
+        var isMatch = q && text.indexOf(q) !== -1;
+  
+        var iconEl = obj.marker.getElement();
+        if (!iconEl) return;
+  
+        iconEl.classList.remove('marker-highlight', 'marker-dim');
+  
+        if (!q) {
+          obj.marker.setZIndexOffset(0);
+          return;
+        }
+  
+        if (isMatch) {
+          iconEl.classList.add('marker-highlight');
+          obj.marker.setZIndexOffset(500);
+        } else {
+          iconEl.classList.add('marker-dim');
+          obj.marker.setZIndexOffset(0);
+        }
+      });
+    }
+  
+    // Connect Dropdown
     var neighborhoodSelect = document.getElementById('neighborhood-select');
     neighborhoodSelect.addEventListener('change', function (e) {
       var sheetName = e.target.value;
       loadNeighborhood(sheetName);
     });
-
+  
+    // Connect search input
+    var searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      // Apply highlighting while typing
+      searchInput.addEventListener('input', function (e) {
+        applySearchHighlight(e.target.value);
+      });
+  
+      // Handle Enter key
+      searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+        }
+      });
+  
+      // Focus states
+      searchInput.addEventListener('focus', function () {
+        searchInput.classList.add('search-visual-focus');
+      });
+      searchInput.addEventListener('blur', function () {
+        searchInput.classList.remove('search-visual-focus');
+      });
+    }
+  
     // Initial load
     window.addEventListener('load', function () {
       loadNeighborhood('Neighborhood 1');
     });
   </script>
+
 </body>
 </html>
