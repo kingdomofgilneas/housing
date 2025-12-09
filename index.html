@@ -293,6 +293,32 @@
       const el = document.getElementById('loading-screen');
       if (el) el.style.display = 'none';
     }
+
+    // Markup Formatting
+    function formatInfoText(raw) {
+      if (!raw) return '';
+
+      // Escape HTML
+      let txt = raw
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Preserve line breaks
+      txt = txt.replace(/\r\n|\r|\n/g, '<br>');
+      // ***bold+italic***
+      txt = txt.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      // **bold**
+      txt = txt.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+      // *italic*
+      txt = txt.replace(/\*([\s\S]+?)\*/g, '<em>$1</em>');
+      // __underline__
+      txt = txt.replace(/__([\s\S]+?)__/g, '<u>$1</u>');
+      // ~~strike~~
+      txt = txt.replace(/~~([\s\S]+?)~~/g, '<s>$1</s>');
+
+      return txt;
+    }
   
     // Map setup
     var mapBounds = [[0, 0], [2560, 3840]];
@@ -392,7 +418,8 @@
   
         var marker = L.marker(position, { icon: zoomOutIcon }).addTo(map);
   
-        var infoHtml  = info ? info.replace(/\n/g, '<br>') : '';
+        // Formatted info with markup + line breaks
+        var infoHtml  = formatInfoText(info);
         var ownerHtml = owner ? '<i>' + owner + '</i>' : '';
         var divider   = (owner && infoHtml) ? '<hr class="popup-divider">' : '';
   
