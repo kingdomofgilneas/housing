@@ -64,7 +64,6 @@
       opacity: 1;
     }
 
-    /* Actually scale the inner emoji/label */
     .marker-highlight .emoji-dot {
       font-size: 26px;
       line-height: 26px;
@@ -132,14 +131,13 @@
       pointer-events: none;
     }
     
-    /* Pulse animation */
     @keyframes pulse {
       0%   { transform: scale(1.00); opacity: 0.92; }
       50%  { transform: scale(1.03); opacity: 1.0; }
       100% { transform: scale(1.00); opacity: 0.92; }
     }
 
-    /* Popup Styling - WOW-ish! */
+    /* Popup Styling */
     .leaflet-popup-content-wrapper {
       background: rgba(0, 0, 0, 0.85) !important;
       color: #f2f2f2 !important;
@@ -199,7 +197,6 @@
       text-decoration: none;
     }
 
-    /* Left side of top bar (logo + title) */
     #top-bar .top-left {
       display: flex;
       align-items: center;
@@ -245,11 +242,197 @@
     #search-input:focus {
       outline: none;
     }
-
-    /* Focus style */
     #search-input.search-visual-focus {
       border-color: #ffffff;
       box-shadow: 0 0 6px rgba(255,255,255,0.5);
+    }
+
+    /*  Bottom Drawer details/photos */
+    #bottom-drawer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.96);
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.9);
+      z-index: 9500;
+      display: flex;
+      flex-direction: column;
+      transition: height 0.25s ease;
+      height: 275px; /* This is finicky,  */
+      font-family: Arial, sans-serif;
+    }
+
+    #bottom-drawer.collapsed {
+      height: 32px;
+    }
+
+    #drawer-header::before {
+      display: none !important;
+    }
+    #drawer-header {
+      position: relative;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #ccc;
+      background: linear-gradient(to top, #000 0%, #141414 60%);
+    }
+
+    #drawer-chevron {
+      font-size: 28px;
+      opacity: 0.9;
+      margin-top: 8px;
+    }
+
+    #drawer-body {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      padding: 8px 10px 10px 10px;
+      gap: 10px;
+      box-sizing: border-box;
+    }
+
+    /* Bottom drawer - LEFT details */
+    .drawer-left {
+      flex: 1;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(8, 8, 8, 0.95);
+      display: flex;
+      flex-direction: column;
+      padding: 10px 12px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    #drawer-plot-title {
+      font-size: 20px; 
+      font-weight: 600;
+      color: #fbac3a;
+      margin-bottom: 6px;
+    }
+
+    #drawer-plot-owner {
+      font-size: 16px;
+      color: #ccc;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    #drawer-plot-info {
+      font-size: 16px;
+      color: #ddd;
+      line-height: 1.5;
+      overflow-y: auto;
+    }
+
+    /* Bottom Drawer - RIGHT photos */
+    .drawer-right {
+      flex: 0 0 55%;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: radial-gradient(circle at top, #222 0, #050505 60%);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #drawer-images {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px 6px 16px; 
+      overflow-x: auto;
+      box-sizing: border-box;
+    }
+
+    #drawer-images img {
+      max-height: 150px;
+      width: auto;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+      object-fit: contain;
+      cursor: pointer;
+    }
+
+    #drawer-images-placeholder {
+      padding: 8px 12px;
+      font-size: 14px; 
+      color: #aaa;
+    }
+
+    @media (max-width: 800px) {
+      #drawer-body {
+        flex-direction: column;
+      }
+      .drawer-right {
+        flex: 0 0 auto;
+      }
+      #drawer-images img {
+        max-height: 110px;
+      }
+    }
+
+    /* Fullscreen lightbox for clicked thumbnails */
+    #image-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    
+    .lightbox-inner {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    #image-lightbox img {
+      max-width: 100% !important;
+      max-height: 80vh !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      display: block;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
+    }
+    
+    #lightbox-close {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.9);
     }
 
   </style>
@@ -280,6 +463,34 @@
 
   <div id="map"></div>
 
+  <!-- Bottom Drawer -->
+  <div id="bottom-drawer" class="collapsed">
+    <div id="drawer-header">
+      <span id="drawer-chevron">▲</span>
+    </div>
+    <div id="drawer-body">
+      <!-- DETAILS LEFT -->
+      <div class="drawer-left">
+        <div id="drawer-plot-title">No plot selected</div>
+        <div id="drawer-plot-owner"></div>
+        <div id="drawer-plot-info"></div>
+      </div>
+      <!-- THUMBNAILS RIGHT -->
+      <div class="drawer-right">
+        <div id="drawer-images"></div>
+        <div id="drawer-images-placeholder">Click a plot marker to view any available images.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen lightbox -->
+  <div id="image-lightbox">
+    <div class="lightbox-inner">
+      <img id="lightbox-image" src="" alt="Plot image">
+      <button id="lightbox-close" type="button">×</button>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const DATA_URL = 'https://script.google.com/macros/s/AKfycbx4mYuCwK4vJzNZ9tGvc0I_xvtBkQ2XyobdeTKmR0RT_1_WOi4dLNPVEScFxrvrUWVFMQ/exec';
@@ -298,23 +509,16 @@
     function formatInfoText(raw) {
       if (!raw) return '';
 
-      // Escape HTML
       let txt = raw
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
 
-      // Preserve line breaks
       txt = txt.replace(/\r\n|\r|\n/g, '<br>');
-      // ***bold+italic***
       txt = txt.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-      // **bold**
       txt = txt.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
-      // *italic*
       txt = txt.replace(/\*([\s\S]+?)\*/g, '<em>$1</em>');
-      // __underline__
       txt = txt.replace(/__([\s\S]+?)__/g, '<u>$1</u>');
-      // ~~strike~~
       txt = txt.replace(/~~([\s\S]+?)~~/g, '<s>$1</s>');
 
       return txt;
@@ -326,8 +530,6 @@
       crs: L.CRS.Simple,
       minZoom: -2,
       maxZoom: 4,
-      zoomSnap: 0.25,
-      zoomDelta: 0.25,
       attributionControl: false
     });
   
@@ -335,17 +537,15 @@
     var imageOverlay = L.imageOverlay(imageUrl, mapBounds).addTo(map);
     map.fitBounds(mapBounds);
   
-    // Zoomed-out emoji dot
     function makeEmojiDot(emoji) {
-      var em = emoji || '•'; // fallback if Type is empty
+      var em = emoji || '•';
       return L.divIcon({
         html: '<div class="emoji-dot">' + em + '</div>',
-        className: '',   // keep default
+        className: '',
         iconSize: [18, 18]
       });
     }
   
-    // Zoomed-in label with emoji + title
     function makeEmojiLabel(emoji, text) {
       var em = emoji || '';
       var labelText = text || '';
@@ -360,12 +560,17 @@
       });
     }
   
-    // Switch from emoji-only to emoji+label at/above this zoom
     var iconSwitchZoom = 0;
-  
-    // Will hold: marker, zoomOutIcon, zoomInIcon, meta, etc
     var markers = [];
-  
+
+    // Track current subdivision index (0,1,2...) based on dropdown
+    var currentSubdivisionIndex = 0;
+
+    function getSubdivisionIndexFromName(name) {
+      var m = (name || '').match(/(\d+)/);
+      return m ? m[1] : 0;
+    }
+
     function updateIconsForZoom() {
       var currentZoom = map.getZoom();
   
@@ -377,7 +582,6 @@
         }
       });
   
-      // Reapply search highlight
       var searchInput = document.getElementById('search-input');
       if (searchInput && searchInput.value.trim() !== '') {
         applySearchHighlight(searchInput.value);
@@ -386,12 +590,139 @@
   
     map.on('zoomend', updateIconsForZoom);
   
-    // Remove existing markers from map
     function clearExistingMarkers() {
       markers.forEach(function (obj) {
         map.removeLayer(obj.marker);
       });
       markers = [];
+    }
+
+    // Bottom drawer
+    const bottomDrawer = document.getElementById('bottom-drawer');
+    const drawerHeader = document.getElementById('drawer-header');
+    const drawerChevron = document.getElementById('drawer-chevron');
+    const drawerImages  = document.getElementById('drawer-images');
+    const drawerImagesPlaceholder = document.getElementById('drawer-images-placeholder');
+    const drawerPlotTitle = document.getElementById('drawer-plot-title');
+    const drawerPlotOwner = document.getElementById('drawer-plot-owner');
+    const drawerPlotInfo  = document.getElementById('drawer-plot-info');
+
+    drawerHeader.addEventListener('click', function () {
+      var collapsed = bottomDrawer.classList.toggle('collapsed');
+      drawerChevron.textContent = collapsed ? '▲' : '▼';
+    });
+
+    function expandDrawer() {
+      bottomDrawer.classList.remove('collapsed');
+      drawerChevron.textContent = '▼';
+    }
+
+    // Lightbox
+    const lightbox       = document.getElementById('image-lightbox');
+    const lightboxImage  = document.getElementById('lightbox-image');
+    const lightboxClose  = document.getElementById('lightbox-close');
+
+    function openLightbox(src) {
+      lightboxImage.src = src;
+      lightbox.style.display = 'flex';
+    }
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+      lightboxImage.src = '';
+    }
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+    function extractPlotNumber(row, rawTitle) {
+      if (row.owner !== undefined && row.owner !== null) {
+        let v = String(row.owner).trim();
+        v = v.replace(/^plot\s*/i, '');
+        return v;
+      }
+      return null;
+    }
+
+    // Load plot images from /assets/plots/SUB-PLOT-N.jpg
+    function showPlotImages(subIndex, plotNumber, title, owner, info) {
+      drawerImages.innerHTML = '';
+      drawerImagesPlaceholder.style.display = 'block';
+      drawerImagesPlaceholder.textContent = 'Looking for images for this plot...';
+
+      var sub = subIndex || 0;
+
+      drawerPlotTitle.textContent = title || 'Plot';
+
+      if (plotNumber != null && plotNumber !== '') {
+        drawerPlotOwner.textContent = 'Subdivision ' + sub + ' · Plot ' + plotNumber;
+      } else {
+        drawerPlotOwner.textContent = '';
+      }
+
+      drawerPlotInfo.innerHTML = formatInfoText(info || '');
+
+      if (plotNumber == null || plotNumber === '') {
+        drawerImagesPlaceholder.textContent = 'No plot number found for this marker.';
+        return;
+      }
+
+      var maxImages = 6;
+      var loadedCount = 0;
+      var attempted = 0;
+      
+      var loadedImages = [];
+
+      function finalizeImageList() {
+        if (attempted < maxImages) return;
+
+        if (loadedCount === 0) {
+          drawerImagesPlaceholder.style.display = 'block';
+          drawerImagesPlaceholder.textContent = 'No images found for this plot.';
+          return;
+        }
+
+        loadedImages.sort(function(a, b) {
+          return a.index - b.index;
+        });
+
+        drawerImages.innerHTML = '';
+        loadedImages.forEach(function(item) {
+          drawerImages.appendChild(item.img);
+        });
+      }
+
+      function onFinishedAttempt() {
+        attempted++;
+        finalizeImageList();
+      }
+
+      for (let i = 1; i <= maxImages; i++) {
+        let img = new Image();
+        let src = 'assets/plots/' + sub + '-' + plotNumber + '-' + i + '.jpg';
+        img.src = src;
+
+        img.onload = function () {
+          loadedCount++;
+          drawerImagesPlaceholder.style.display = 'none';
+
+          img.addEventListener('click', function () {
+            openLightbox(src);
+          });
+
+          loadedImages.push({ index: i, img: img });
+          onFinishedAttempt();
+        };
+
+        img.onerror = function () {
+          onFinishedAttempt();
+        };
+      }
     }
   
     // Create markers from sheet data
@@ -399,14 +730,14 @@
       clearExistingMarkers();
   
       sheetMarkers.forEach(function (row) {
-        // Expecting: owner, title, info, x, y, type 
         var owner = row.owner || '';
         var rawTitle = row.title || 'Unknown';
         var title = rawTitle.length > 22 ? rawTitle.substring(0, 20) + '…' : rawTitle;
         var info  = row.info  || '';
         var x     = parseFloat(row.x);
         var y     = parseFloat(row.y);
-        var type  = row.type  || ''; // emoji from Type column
+        var type  = row.type  || '';
+        var plotNumber = extractPlotNumber(row, rawTitle);
   
         if (isNaN(x) || isNaN(y)) {
           console.warn('Skipping row with invalid coords:', row);
@@ -414,20 +745,18 @@
         }
   
         var position = [x, y];
-  
         var zoomOutIcon = makeEmojiDot(type);
         var zoomInIcon  = makeEmojiLabel(type, title);
   
         var marker = L.marker(position, { icon: zoomOutIcon }).addTo(map);
   
-        // Formatted info with markup + line breaks
         var infoHtml  = formatInfoText(info);
-        var ownerHtml = owner ? '<i>' + owner + '</i>' : '';
-        var divider   = (owner && infoHtml) ? '<hr class="popup-divider">' : '';
+        var ownerHtml = plotNumber ? '<i>Plot ' + plotNumber + '</i>' : '';
+        var divider   = (ownerHtml && infoHtml) ? '<hr class="popup-divider">' : '';
   
         var popupHtml =
           '<div class="custom-popup">' +
-            '<span class="title-pop">' + title + '</span><br>' +
+            '<span class="title-pop">' + rawTitle + '</span><br>' +
             ownerHtml +
             divider +
             infoHtml +
@@ -436,7 +765,11 @@
         marker
           .bindPopup(popupHtml, { autoClose: false })
           .on('mouseover', function () { this.openPopup(); })
-          .on('mouseout', function () { this.closePopup(); });
+          .on('mouseout', function () { this.closePopup(); })
+          .on('click', function () {
+            expandDrawer();
+            showPlotImages(currentSubdivisionIndex, plotNumber, rawTitle, owner, info);
+          });
   
         markers.push({
           marker: marker,
@@ -444,25 +777,27 @@
           zoomInIcon: zoomInIcon,
           owner: owner,
           title: title,
+          rawTitle: rawTitle,
           info: info,
           x: x,
           y: y,
-          type: type
+          type: type,
+          plotNumber: plotNumber
         });
       });
   
       updateIconsForZoom();
   
-      // Re-apply any current search filter after new data loads (no panning)
       var searchInputLocal = document.getElementById('search-input');
       if (searchInputLocal && searchInputLocal.value.trim() !== '') {
         applySearchHighlight(searchInputLocal.value);
       }
     }
   
-    // Load a neighborhood/sheet by name
     function loadNeighborhood(sheetName) {
       showLoadingScreen();
+
+      currentSubdivisionIndex = getSubdivisionIndexFromName(sheetName);
   
       var url = DATA_URL + '?sheet=' + encodeURIComponent(sheetName);
   
@@ -474,7 +809,6 @@
           return response.json();
         })
         .then(function (data) {
-          // Expecting: { markers: [ { owner, title, info, x, y, type }, ... ] }
           createMarkersFromData(data.markers || []);
           hideLoadingScreen();
         })
@@ -484,7 +818,6 @@
         });
     }
   
-    // Search and Highlight
     function applySearchHighlight(query) {
       var q = (query || '').trim().toLowerCase();
   
@@ -517,29 +850,24 @@
       });
     }
   
-    // Connect Dropdown
     var neighborhoodSelect = document.getElementById('neighborhood-select');
     neighborhoodSelect.addEventListener('change', function (e) {
       var sheetName = e.target.value;
       loadNeighborhood(sheetName);
     });
   
-    // Connect search input
     var searchInput = document.getElementById('search-input');
     if (searchInput) {
-      // Apply highlighting while typing
       searchInput.addEventListener('input', function (e) {
         applySearchHighlight(e.target.value);
       });
   
-      // Handle Enter key
       searchInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
           e.preventDefault();
         }
       });
   
-      // Focus states
       searchInput.addEventListener('focus', function () {
         searchInput.classList.add('search-visual-focus');
       });
@@ -548,7 +876,6 @@
       });
     }
   
-    // Initial load
     window.addEventListener('load', function () {
       loadNeighborhood('Subdivision 0');
     });
