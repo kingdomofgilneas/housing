@@ -445,9 +445,10 @@
     </div>
     <div class="top-right">
       <select id="neighborhood-select">
-        <option value="Subdivision 0">Subdivision 0</option>
         <option value="Subdivision 1">Subdivision 1</option>
         <option value="Subdivision 2">Subdivision 2</option>
+        <option value="Subdivision 3">Subdivision 3</option>
+        <option value="Subdivision 4">Subdivision 4</option>
       </select>
       <input id="search-input" type="text" placeholder="Search plots...">
     </div>
@@ -568,7 +569,7 @@
 
     function getSubdivisionIndexFromName(name) {
       var m = (name || '').match(/(\d+)/);
-      return m ? m[1] : 0;
+      return m ? m[1] : 1;
     }
 
     function updateIconsForZoom() {
@@ -655,7 +656,7 @@
       drawerImagesPlaceholder.style.display = 'block';
       drawerImagesPlaceholder.textContent = 'Looking for images for this plot...';
 
-      var sub = subIndex || 0;
+      var sub = subIndex || 1;
 
       drawerPlotTitle.textContent = title || 'Plot';
 
@@ -877,7 +878,7 @@
     }
   
     window.addEventListener('load', function () {
-      loadNeighborhood('Subdivision 0');
+      loadNeighborhood('Subdivision 1');
     });
   </script>
 
