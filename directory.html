@@ -358,27 +358,31 @@
 
     #photos-strip {
       flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 14px;
       padding: 14px 16px;
-      overflow-x: auto;
       box-sizing: border-box;
       min-height: 0;
+    
+      display: grid;
+      gap: 14px;
+    
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      align-content: start;
+    
+      overflow-y: auto;
+      overflow-x: hidden;
     }
-
+    
     #photos-strip img {
-      max-height: 240px;
-      width: auto;
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.25);
-      flex-shrink: 0;
-      object-fit: contain;
       cursor: pointer;
       box-shadow: 0 0 20px rgba(0,0,0,0.55);
       transition: transform 0.12s ease, border-color 0.12s ease;
     }
-
+    
     #photos-strip img:hover {
       transform: translateY(-2px);
       border-color: rgba(255,255,255,0.38);
