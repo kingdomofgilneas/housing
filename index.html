@@ -540,6 +540,7 @@
 
       // Fix map size on load.
       requestAnimationFrame(() => map.invalidateSize());
+      setTimeout(() => map.invalidateSize(), 50);
     }
 
     // Markup Formatting
