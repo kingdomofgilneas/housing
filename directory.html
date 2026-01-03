@@ -293,7 +293,7 @@
     }
 
     #info-panel {
-      flex: 0 0 56%;
+      flex: 0 0 30%;
       min-height: 240px;
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.16);
@@ -559,6 +559,7 @@
 
   <script>
     const DATA_URL = 'https://script.google.com/macros/s/AKfycbx4mYuCwK4vJzNZ9tGvc0I_xvtBkQ2XyobdeTKmR0RT_1_WOi4dLNPVEScFxrvrUWVFMQ/exec';
+    const IMAGE_URL = 'https://script.google.com/macros/s/AKfycbxw1ZXiaI8xwKzeiMKCYvIHMUb-i-Fa_S1LOj9laRzKtidj-A785dSklyUgGideEa5N/exec';
 
     function showLoadingScreen() {
       const el = document.getElementById('loading-screen');
@@ -612,7 +613,8 @@
 
     function getSubdivisionIndexFromName(name) {
       var m = (name || '').match(/(\d+)/);
-      return m ? m[1] : 1;
+      var n = m ? Number(m[1]) : 1;
+      return isNaN(n) ? 1 : n;
     }
 
     function extractPlotNumber(row) {
@@ -799,51 +801,51 @@
         return;
       }
 
-      const maxImages = 6;
-      let loadedCount = 0;
-      let attempted = 0;
-      let loadedImages = [];
+      var url =
+        IMAGE_URL +
+        '?action=images' +
+        '&sub=' + encodeURIComponent(String(sub)) +
+        '&plot=' + encodeURIComponent(String(plotNumber));
 
-      function finalize() {
-        if (attempted < maxImages) return;
-
-        if (loadedCount === 0) {
+      fetch(url)
+        .then(function (r) {
+          if (!r.ok) throw new Error('Image fetch failed');
+          return r.json();
+        })
+        .then(function (data) {
+          var images = (data && data.images) ? data.images : [];
+          renderDriveImagesStrip_(images);
+        })
+        .catch(function (err) {
+          console.error(err);
           photosPlaceholderEl.style.display = 'block';
-          photosPlaceholderEl.textContent = 'No images found for this plot.';
-          return;
-        }
+          photosPlaceholderEl.textContent = 'Could not load images for this plot.';
+        });
+    }
 
-        loadedImages.sort((a, b) => a.index - b.index);
-        photosStripEl.innerHTML = '';
-        loadedImages.forEach(item => photosStripEl.appendChild(item.img));
+    function renderDriveImagesStrip_(images) {
+      photosStripEl.innerHTML = '';
+
+      if (!images || images.length === 0) {
+        photosPlaceholderEl.style.display = 'block';
+        photosPlaceholderEl.textContent = 'No images found for this plot.';
+        return;
       }
 
-      function finishAttempt() {
-        attempted++;
-        finalize();
-      }
+      photosPlaceholderEl.style.display = 'none';
 
-      for (let i = 1; i <= maxImages; i++) {
-        const img = new Image();
-        const src = 'assets/plots/' + sub + '-' + plotNumber + '-' + i + '.jpg';
-        img.src = src;
+      images.forEach(function (item) {
+        var img = document.createElement('img');
+        img.src = item.thumbUrl || item.url;
+        img.referrerPolicy = 'no-referrer';
+        img.alt = item.name || 'Plot image';
 
-        img.onload = function () {
-          loadedCount++;
-          photosPlaceholderEl.style.display = 'none';
+        img.addEventListener('click', function () {
+          openLightbox(item.thumbUrl ? item.thumbUrl.replace('sz=w1200','sz=w3000') : item.url);
+        });
 
-          img.addEventListener('click', function () {
-            openLightbox(src);
-          });
-
-          loadedImages.push({ index: i, img });
-          finishAttempt();
-        };
-
-        img.onerror = function () {
-          finishAttempt();
-        };
-      }
+        photosStripEl.appendChild(img);
+      });
     }
 
     function applyFilters() {
