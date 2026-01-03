@@ -137,7 +137,7 @@
       padding: 4px 8px;
       font-size: 13px;
       font-family: Arial, sans-serif;
-      min-width: 160px;
+      min-width: 180px;
       transition: box-shadow 0.15s ease, border-color 0.15s ease;
     }
     #search-input::placeholder {
@@ -167,9 +167,9 @@
     }
 
     #sidebar {
-      width: 420px;
-      max-width: 44vw;
-      min-width: 280px;
+      flex: 0 0 40%;
+      max-width: 40%;
+      min-width: 320px;
       border-right: 1px solid rgba(255,255,255,0.14);
       background: rgba(0,0,0,0.55);
       display: flex;
@@ -198,25 +198,25 @@
     #plot-list {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 10px 14px 10px;
+      padding: 12px 12px 14px 12px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
 
     .plot-row {
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.14);
       background: rgba(10, 10, 10, 0.85);
-      padding: 10px 10px;
+      padding: 12px 12px;
       box-sizing: border-box;
       cursor: pointer;
       transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
       overflow: hidden;
       position: relative;
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: flex-start;
     }
 
@@ -233,8 +233,8 @@
     }
 
     .row-emoji {
-      font-size: 22px;
-      line-height: 22px;
+      font-size: 24px;
+      line-height: 24px;
       filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
       flex: 0 0 auto;
       margin-top: 2px;
@@ -246,20 +246,20 @@
     }
 
     .row-title {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       color: #f5f5f5;
       line-height: 1.25;
-      margin: 0 0 4px 0;
+      margin: 0 0 5px 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .row-sub {
-      font-size: 12px;
+      font-size: 13px;
       color: #bbb;
-      margin: 0 0 6px 0;
+      margin: 0 0 8px 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -268,8 +268,8 @@
     .row-preview {
       font-size: 12px;
       color: #d6d6d6;
-      line-height: 1.35;
-      max-height: 2.8em;
+      line-height: 1.4;
+      max-height: 2.9em;
       overflow: hidden;
       opacity: 0.92;
     }
@@ -280,15 +280,15 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
-      padding: 14px;
-      gap: 12px;
+      padding: 16px;
+      gap: 14px;
       box-sizing: border-box;
     }
 
     #info-panel {
-      flex: 0 0 52%;
-      min-height: 200px;
-      border-radius: 10px;
+      flex: 0 0 56%;
+      min-height: 240px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.16);
       background: rgba(8, 8, 8, 0.92);
       overflow: hidden;
@@ -298,39 +298,39 @@
     }
 
     .panel-head {
-      padding: 12px 14px;
+      padding: 14px 16px;
       border-bottom: 1px solid rgba(255,255,255,0.12);
       background: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(0,0,0,0.45));
     }
 
     #info-title {
-      font-size: 22px;
-      font-weight: 600;
+      font-size: 28px;
+      font-weight: 700;
       color: #fbac3a;
-      margin: 0 0 6px 0;
-      line-height: 1.15;
+      margin: 0 0 8px 0;
+      line-height: 1.12;
     }
 
     #info-subtitle {
-      font-size: 14px;
+      font-size: 16px;
       color: #ccc;
       font-style: italic;
       margin: 0;
     }
 
     #info-body {
-      padding: 12px 14px 14px 14px;
+      padding: 14px 16px 16px 16px;
       overflow-y: auto;
-      font-size: 15px;
+      font-size: 17px;
       color: #ddd;
-      line-height: 1.5;
+      line-height: 1.55;
       min-height: 0;
     }
 
     #photos-panel {
       flex: 1;
-      min-height: 180px;
-      border-radius: 10px;
+      min-height: 220px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.16);
       background: radial-gradient(circle at top, #222 0, #050505 60%);
       overflow: hidden;
@@ -340,7 +340,7 @@
     }
 
     .photos-head {
-      padding: 10px 14px;
+      padding: 12px 16px;
       border-bottom: 1px solid rgba(255,255,255,0.12);
       background: linear-gradient(to bottom, rgba(0,0,0,0.85), rgba(0,0,0,0.45));
       font-size: 12px;
@@ -353,17 +353,17 @@
       flex: 1;
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
+      gap: 14px;
+      padding: 14px 16px;
       overflow-x: auto;
       box-sizing: border-box;
       min-height: 0;
     }
 
     #photos-strip img {
-      max-height: 190px;
+      max-height: 240px;
       width: auto;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.25);
       flex-shrink: 0;
       object-fit: contain;
@@ -378,13 +378,13 @@
     }
 
     #photos-placeholder {
-      padding: 12px 14px;
-      font-size: 14px;
+      padding: 14px 16px;
+      font-size: 15px;
       color: #aaa;
     }
 
     .empty-state {
-      margin: 10px 14px 14px 14px;
+      margin: 12px 14px 14px 14px;
       padding: 12px;
       border: 1px dashed rgba(255,255,255,0.18);
       border-radius: 8px;
@@ -420,7 +420,7 @@
       height: auto !important;
       object-fit: contain !important;
       display: block;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.4);
       box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
     }
@@ -448,19 +448,29 @@
         flex-direction: column;
       }
       #sidebar {
-        width: 100%;
+        flex: none;
         max-width: none;
+        width: 100%;
+        height: 46%;
         min-width: 0;
-        height: 44%;
         border-right: none;
         border-bottom: 1px solid rgba(255,255,255,0.14);
       }
       #content {
-        height: 56%;
-        padding: 10px;
+        height: 54%;
+        padding: 12px;
       }
       #info-panel {
-        flex: 0 0 52%;
+        flex: 0 0 54%;
+      }
+      #info-title {
+        font-size: 24px;
+      }
+      #info-body {
+        font-size: 16px;
+      }
+      #photos-strip img {
+        max-height: 200px;
       }
     }
   </style>
@@ -563,7 +573,6 @@
 
       txt = txt.replace(/\r\n|\r|\n/g, '<br>');
       txt = txt.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-      txt = txt.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '<strong><em>$1</em></strong>');
       txt = txt.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
       txt = txt.replace(/\*([\s\S]+?)\*/g, '<em>$1</em>');
       txt = txt.replace(/__([\s\S]+?)__/g, '<u>$1</u>');
@@ -619,7 +628,6 @@
 
     const listEl = document.getElementById('plot-list');
     const emptyEl = document.getElementById('empty-state');
-    const dirTitleEl = document.getElementById('directory-title');
     const metaEl = document.getElementById('directory-meta');
 
     const infoTitleEl = document.getElementById('info-title');
@@ -720,7 +728,7 @@
         const emoji = safeString(r.type).trim() || '•';
 
         let preview = safeString(r.info).trim();
-        if (preview.length > 130) preview = preview.substring(0, 126) + '…';
+        if (preview.length > 140) preview = preview.substring(0, 136) + '…';
         preview = preview.replace(/\r\n|\r|\n/g, ' ');
 
         const subTextParts = [];
@@ -846,11 +854,13 @@
 
         const haystack = (
           safeString(r.rawTitle) + ' ' +
+          safeString(r.titleShort) + ' ' +
           safeString(r.owner) + ' ' +
           safeString(r.info) + ' ' +
           safeString(r.type) + ' ' +
           safeString(r.plotNumber) + ' ' +
-          safeString(r.subdivisionName)
+          safeString(r.subdivisionName) + ' ' +
+          safeString(r.subdivisionIndex)
         ).toLowerCase();
 
         return haystack.indexOf(q) !== -1;
@@ -904,8 +914,6 @@
 
     async function loadAllNeighborhoods(sheetNames) {
       showLoadingScreen();
-
-      dirTitleEl.textContent = 'All Subdivisions Directory';
       metaEl.textContent = 'Loading plots…';
 
       try {
