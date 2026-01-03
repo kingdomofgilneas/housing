@@ -213,7 +213,7 @@
       box-sizing: border-box;
       cursor: pointer;
       transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
-      overflow: hidden;
+      overflow: visible;
       position: relative;
       display: flex;
       gap: 14px;
@@ -245,6 +245,7 @@
     .row-main {
       min-width: 0;
       flex: 1;
+      overflow: visible;
     }
 
     .row-title {
@@ -277,6 +278,7 @@
       overflow: visible;
       opacity: 0.92;
       word-break: break-word;
+      white-space: normal;
     }
 
     #content {
@@ -733,7 +735,6 @@
         const emoji = safeString(r.type).trim() || '•';
 
         let preview = safeString(r.info).trim();
-        if (preview.length > 320) preview = preview.substring(0, 316) + '…';
         preview = preview.replace(/\r\n|\r|\n/g, ' ');
 
         const subTextParts = [];
@@ -743,7 +744,7 @@
         rowEl.innerHTML = `
           <div class="row-emoji" title="${escapeHtml(emoji)}">${escapeHtml(emoji)}</div>
           <div class="row-main">
-            <div class="row-title">${escapeHtml(r.titleShort)}</div>
+            <div class="row-title">${escapeHtml(r.rawTitle)}</div>
             <div class="row-sub">${escapeHtml(r.subdivisionName)} · ${escapeHtml(subText)}</div>
             <div class="row-preview">${escapeHtml(preview || 'No description provided.')}</div>
           </div>
