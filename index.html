@@ -260,7 +260,7 @@
       display: flex;
       flex-direction: column;
       transition: height 0.25s ease;
-      height: 275px; /* This is finicky,  */
+      height: 275px;
       font-family: Arial, sans-serif;
     }
 
@@ -268,9 +268,7 @@
       height: 32px;
     }
 
-    #drawer-header::before {
-      display: none !important;
-    }
+    #drawer-header::before { display: none !important; }
     #drawer-header {
       position: relative;
       height: 32px;
@@ -343,28 +341,10 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-height: 0;
     }
 
-    #drawer-images {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px 6px 16px; 
-      overflow-x: auto;
-      box-sizing: border-box;
-    }
-
-    #drawer-images img {
-      max-height: 150px;
-      width: auto;
-      border-radius: 4px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      flex-shrink: 0;
-      object-fit: contain;
-      cursor: pointer;
-    }
-
+    /* Placeholder text */
     #drawer-images-placeholder {
       padding: 8px 12px;
       font-size: 14px; 
@@ -372,18 +352,72 @@
     }
 
     @media (max-width: 800px) {
-      #drawer-body {
-        flex-direction: column;
-      }
-      .drawer-right {
-        flex: 0 0 auto;
-      }
-      #drawer-images img {
-        max-height: 110px;
-      }
+      #drawer-body { flex-direction: column; }
+      .drawer-right { flex: 0 0 auto; }
     }
 
-    /* Fullscreen lightbox for clicked thumbnails */
+    /* Tabs bar */
+    .image-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 8px 10px 0 10px;
+      overflow-x: auto;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .image-tab {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.35);
+      color: #ddd;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: filter 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .image-tab:hover { filter: brightness(1.15); }
+
+    .image-tab.active {
+      border-color: rgba(251, 172, 58, 0.75);
+      background: rgba(251, 172, 58, 0.12);
+      color: #fff;
+    }
+
+    .image-grid {
+      flex: 1;
+      min-height: 0;
+      padding: 10px 12px 12px 12px;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      align-content: start;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    .image-grid img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+
+    .image-grid img:hover {
+      transform: scale(1.02);
+      filter: brightness(1.08);
+    }
+
+    @media (max-width: 800px) {
+      .image-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+      .image-grid img { height: 110px; }
+    }
+
     #image-lightbox {
       position: fixed;
       inset: 0;
@@ -434,7 +468,6 @@
       justify-content: center;
       box-shadow: 0 0 10px rgba(0,0,0,0.9);
     }
-
   </style>
 </head>
 <body>
@@ -470,21 +503,20 @@
       <span id="drawer-chevron">▲</span>
     </div>
     <div id="drawer-body">
-      <!-- DETAILS LEFT -->
       <div class="drawer-left">
         <div id="drawer-plot-title">No plot selected</div>
         <div id="drawer-plot-owner"></div>
         <div id="drawer-plot-info"></div>
       </div>
-      <!-- THUMBNAILS RIGHT -->
+
       <div class="drawer-right">
-        <div id="drawer-images"></div>
+        <div id="drawer-image-tabs" class="image-tabs" style="display:none;"></div>
+        <div id="drawer-images-grid" class="image-grid"></div>
         <div id="drawer-images-placeholder">Click a plot marker to view any available images.</div>
       </div>
     </div>
   </div>
 
-  <!-- Fullscreen lightbox -->
   <div id="image-lightbox">
     <div class="lightbox-inner">
       <img id="lightbox-image" src="" alt="Plot image">
@@ -495,12 +527,13 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const DATA_URL = 'https://script.google.com/macros/s/AKfycbx4mYuCwK4vJzNZ9tGvc0I_xvtBkQ2XyobdeTKmR0RT_1_WOi4dLNPVEScFxrvrUWVFMQ/exec';
-  
+    const IMAGE_URL = 'https://script.google.com/macros/s/AKfycbxw1ZXiaI8xwKzeiMKCYvIHMUb-i-Fa_S1LOj9laRzKtidj-A785dSklyUgGideEa5N/exec';
+
     function showLoadingScreen() {
       const el = document.getElementById('loading-screen');
       if (el) el.style.display = 'flex';
     }
-  
+
     function hideLoadingScreen() {
       const el = document.getElementById('loading-screen');
       if (el) el.style.display = 'none';
@@ -517,14 +550,14 @@
 
       txt = txt.replace(/\r\n|\r|\n/g, '<br>');
       txt = txt.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-      txt = txt.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+      txt = txt.replace(/\*\*([\s\S]+?)\*\*\*/g, '<strong>$1</strong>');
       txt = txt.replace(/\*([\s\S]+?)\*/g, '<em>$1</em>');
       txt = txt.replace(/__([\s\S]+?)__/g, '<u>$1</u>');
       txt = txt.replace(/~~([\s\S]+?)~~/g, '<s>$1</s>');
 
       return txt;
     }
-  
+
     // Map setup
     var mapBounds = [[0, 0], [2560, 3840]];
     var map = L.map('map', {
@@ -533,11 +566,11 @@
       maxZoom: 4,
       attributionControl: false
     });
-  
+
     var imageUrl = 'assets/map.jpg';
     var imageOverlay = L.imageOverlay(imageUrl, mapBounds).addTo(map);
     map.fitBounds(mapBounds);
-  
+
     function makeEmojiDot(emoji) {
       var em = emoji || '•';
       return L.divIcon({
@@ -546,7 +579,7 @@
         iconSize: [18, 18]
       });
     }
-  
+
     function makeEmojiLabel(emoji, text) {
       var em = emoji || '';
       var labelText = text || '';
@@ -560,21 +593,21 @@
         iconSize: [80, 22]
       });
     }
-  
+
     var iconSwitchZoom = 0;
     var markers = [];
 
-    // Track current subdivision index (0,1,2...) based on dropdown
-    var currentSubdivisionIndex = 0;
+    var currentSubdivisionIndex = 1;
 
     function getSubdivisionIndexFromName(name) {
       var m = (name || '').match(/(\d+)/);
-      return m ? m[1] : 1;
+      var n = m ? Number(m[1]) : 1; // default to Subdivision 1
+      return isNaN(n) ? 1 : n;
     }
 
     function updateIconsForZoom() {
       var currentZoom = map.getZoom();
-  
+
       markers.forEach(function (obj) {
         if (currentZoom >= iconSwitchZoom) {
           obj.marker.setIcon(obj.zoomInIcon);
@@ -582,15 +615,15 @@
           obj.marker.setIcon(obj.zoomOutIcon);
         }
       });
-  
+
       var searchInput = document.getElementById('search-input');
       if (searchInput && searchInput.value.trim() !== '') {
         applySearchHighlight(searchInput.value);
       }
     }
-  
+
     map.on('zoomend', updateIconsForZoom);
-  
+
     function clearExistingMarkers() {
       markers.forEach(function (obj) {
         map.removeLayer(obj.marker);
@@ -602,7 +635,8 @@
     const bottomDrawer = document.getElementById('bottom-drawer');
     const drawerHeader = document.getElementById('drawer-header');
     const drawerChevron = document.getElementById('drawer-chevron');
-    const drawerImages  = document.getElementById('drawer-images');
+    const drawerImageTabs = document.getElementById('drawer-image-tabs');
+    const drawerImagesGrid  = document.getElementById('drawer-images-grid');
     const drawerImagesPlaceholder = document.getElementById('drawer-images-placeholder');
     const drawerPlotTitle = document.getElementById('drawer-plot-title');
     const drawerPlotOwner = document.getElementById('drawer-plot-owner');
@@ -650,18 +684,19 @@
       return null;
     }
 
-    // Load plot images from /assets/plots/SUB-PLOT-N.jpg
+    // Load plot images from GDrive via webapp
     function showPlotImages(subIndex, plotNumber, title, owner, info) {
-      drawerImages.innerHTML = '';
-      drawerImagesPlaceholder.style.display = 'block';
-      drawerImagesPlaceholder.textContent = 'Looking for images for this plot...';
+      drawerImagesGrid.innerHTML = '';
+      drawerImageTabs.innerHTML = '';
+      drawerImageTabs.style.display = 'none';
 
-      var sub = subIndex || 1;
+      drawerImagesPlaceholder.style.display = 'block';
+      drawerImagesPlaceholder.textContent = 'Loading images...';
 
       drawerPlotTitle.textContent = title || 'Plot';
 
       if (plotNumber != null && plotNumber !== '') {
-        drawerPlotOwner.textContent = 'Subdivision ' + sub + ' · Plot ' + plotNumber;
+        drawerPlotOwner.textContent = 'Subdivision ' + subIndex + ' · Plot ' + plotNumber;
       } else {
         drawerPlotOwner.textContent = '';
       }
@@ -673,63 +708,100 @@
         return;
       }
 
-      var maxImages = 6;
-      var loadedCount = 0;
-      var attempted = 0;
-      
-      var loadedImages = [];
+      var url =
+        IMAGE_URL +
+        '?action=images' +
+        '&sub=' + encodeURIComponent(String(subIndex)) +
+        '&plot=' + encodeURIComponent(String(plotNumber));
 
-      function finalizeImageList() {
-        if (attempted < maxImages) return;
-
-        if (loadedCount === 0) {
+      fetch(url)
+        .then(function (r) {
+          if (!r.ok) throw new Error('Image fetch failed');
+          return r.json();
+        })
+        .then(function (data) {
+          var images = (data && data.images) ? data.images : [];
+          renderDriveImagesAsTabs_(images, subIndex, plotNumber);
+        })
+        .catch(function (err) {
+          console.error(err);
           drawerImagesPlaceholder.style.display = 'block';
-          drawerImagesPlaceholder.textContent = 'No images found for this plot.';
-          return;
-        }
-
-        loadedImages.sort(function(a, b) {
-          return a.index - b.index;
+          drawerImagesPlaceholder.textContent = 'Could not load images for this plot.';
         });
+    }
 
-        drawerImages.innerHTML = '';
-        loadedImages.forEach(function(item) {
-          drawerImages.appendChild(item.img);
-        });
+    function renderDriveImagesAsTabs_(images, subIndex, plotNumber) {
+      drawerImagesGrid.innerHTML = '';
+      drawerImageTabs.innerHTML = '';
+
+      if (!images || images.length === 0) {
+        drawerImageTabs.style.display = 'none';
+        drawerImagesPlaceholder.style.display = 'block';
+        drawerImagesPlaceholder.textContent = 'No images found for this plot.';
+        return;
       }
 
-      function onFinishedAttempt() {
-        attempted++;
-        finalizeImageList();
-      }
+      // Group by subfolder name:
+      // path looks like "1-12/Interior/kitchen.jpg"
+      var groups = {};
+      images.forEach(function (img) {
+        var p = String((img && img.path) ? img.path : '');
+        var parts = p.split('/');
+        var subfolder = (parts.length >= 3 && parts[1]) ? parts[1] : 'Images';
 
-      for (let i = 1; i <= maxImages; i++) {
-        let img = new Image();
-        let src = 'assets/plots/' + sub + '-' + plotNumber + '-' + i + '.jpg';
-        img.src = src;
+        if (!groups[subfolder]) groups[subfolder] = [];
+        groups[subfolder].push(img);
+      });
 
-        img.onload = function () {
-          loadedCount++;
-          drawerImagesPlaceholder.style.display = 'none';
+      var tabNames = Object.keys(groups).sort(function (a, b) { return a.localeCompare(b); });
+      drawerImageTabs.style.display = (tabNames.length > 1) ? 'flex' : 'none';
 
-          img.addEventListener('click', function () {
-            openLightbox(src);
+      var activeTab = tabNames[0];
+
+      function setActiveTab(name) {
+        activeTab = name;
+
+        var buttons = drawerImageTabs.querySelectorAll('button.image-tab');
+        buttons.forEach(function (b) {
+          b.classList.toggle('active', b.dataset.tab === name);
+        });
+
+        drawerImagesGrid.innerHTML = '';
+        drawerImagesPlaceholder.style.display = 'none';
+
+        var list = groups[name] || [];
+        list.forEach(function (item) {
+          var el = document.createElement('img');
+          el.src = item.thumbUrl || item.url;
+          el.referrerPolicy = 'no-referrer';
+          el.alt = item.name || 'Plot image';
+
+          el.addEventListener('click', function () {
+            openLightbox(item.thumbUrl ? item.thumbUrl.replace('sz=w1200','sz=w3000') : item.url);
           });
 
-          loadedImages.push({ index: i, img: img });
-          onFinishedAttempt();
-        };
-
-        img.onerror = function () {
-          onFinishedAttempt();
-        };
+          drawerImagesGrid.appendChild(el);
+        });
       }
+
+      if (tabNames.length > 1) {
+        tabNames.forEach(function (name) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'image-tab';
+          btn.textContent = name;
+          btn.dataset.tab = name;
+          btn.addEventListener('click', function () { setActiveTab(name); });
+          drawerImageTabs.appendChild(btn);
+        });
+      }
+
+      setActiveTab(activeTab);
     }
-  
-    // Create markers from sheet data
+
     function createMarkersFromData(sheetMarkers) {
       clearExistingMarkers();
-  
+
       sheetMarkers.forEach(function (row) {
         var owner = row.owner || '';
         var rawTitle = row.title || 'Unknown';
@@ -739,22 +811,22 @@
         var y     = parseFloat(row.y);
         var type  = row.type  || '';
         var plotNumber = extractPlotNumber(row, rawTitle);
-  
+
         if (isNaN(x) || isNaN(y)) {
           console.warn('Skipping row with invalid coords:', row);
           return;
         }
-  
+
         var position = [x, y];
         var zoomOutIcon = makeEmojiDot(type);
         var zoomInIcon  = makeEmojiLabel(type, title);
-  
+
         var marker = L.marker(position, { icon: zoomOutIcon }).addTo(map);
-  
+
         var infoHtml  = formatInfoText(info);
         var ownerHtml = plotNumber ? '<i>Plot ' + plotNumber + '</i>' : '';
         var divider   = (ownerHtml && infoHtml) ? '<hr class="popup-divider">' : '';
-  
+
         var popupHtml =
           '<div class="custom-popup">' +
             '<span class="title-pop">' + rawTitle + '</span><br>' +
@@ -762,7 +834,7 @@
             divider +
             infoHtml +
           '</div>';
-  
+
         marker
           .bindPopup(popupHtml, { autoClose: false })
           .on('mouseover', function () { this.openPopup(); })
@@ -771,7 +843,7 @@
             expandDrawer();
             showPlotImages(currentSubdivisionIndex, plotNumber, rawTitle, owner, info);
           });
-  
+
         markers.push({
           marker: marker,
           zoomOutIcon: zoomOutIcon,
@@ -786,27 +858,25 @@
           plotNumber: plotNumber
         });
       });
-  
+
       updateIconsForZoom();
-  
+
       var searchInputLocal = document.getElementById('search-input');
       if (searchInputLocal && searchInputLocal.value.trim() !== '') {
         applySearchHighlight(searchInputLocal.value);
       }
     }
-  
+
     function loadNeighborhood(sheetName) {
       showLoadingScreen();
 
       currentSubdivisionIndex = getSubdivisionIndexFromName(sheetName);
-  
+
       var url = DATA_URL + '?sheet=' + encodeURIComponent(sheetName);
-  
+
       fetch(url)
         .then(function (response) {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
+          if (!response.ok) throw new Error('Network response was not ok');
           return response.json();
         })
         .then(function (data) {
@@ -818,29 +888,29 @@
           hideLoadingScreen();
         });
     }
-  
+
     function applySearchHighlight(query) {
       var q = (query || '').trim().toLowerCase();
-  
+
       markers.forEach(function (obj) {
         var text = (
           (obj.title || '') + ' ' +
           (obj.owner || '') + ' ' +
           (obj.info || '')
         ).toLowerCase();
-  
+
         var isMatch = q && text.indexOf(q) !== -1;
-  
+
         var iconEl = obj.marker.getElement();
         if (!iconEl) return;
-  
+
         iconEl.classList.remove('marker-highlight', 'marker-dim');
-  
+
         if (!q) {
           obj.marker.setZIndexOffset(0);
           return;
         }
-  
+
         if (isMatch) {
           iconEl.classList.add('marker-highlight');
           obj.marker.setZIndexOffset(500);
@@ -850,25 +920,22 @@
         }
       });
     }
-  
+
     var neighborhoodSelect = document.getElementById('neighborhood-select');
     neighborhoodSelect.addEventListener('change', function (e) {
-      var sheetName = e.target.value;
-      loadNeighborhood(sheetName);
+      loadNeighborhood(e.target.value);
     });
-  
+
     var searchInput = document.getElementById('search-input');
     if (searchInput) {
       searchInput.addEventListener('input', function (e) {
         applySearchHighlight(e.target.value);
       });
-  
+
       searchInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-        }
+        if (e.key === 'Enter') e.preventDefault();
       });
-  
+
       searchInput.addEventListener('focus', function () {
         searchInput.classList.add('search-visual-focus');
       });
@@ -876,7 +943,7 @@
         searchInput.classList.remove('search-visual-focus');
       });
     }
-  
+
     window.addEventListener('load', function () {
       loadNeighborhood('Subdivision 1');
     });
