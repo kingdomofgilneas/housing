@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Neighborhoods of Gilneas</title>
+
+  <style>
+    html, body { height: 100%; margin: 0; background: #000; }
+
+    /* FULLSCREEN LOADING OVERLAY */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    #loading-screen .loading-bg {
+      position: absolute;
+      inset: 0;
+      background: url('assets/loadingbackground.png') center/cover no-repeat rgba(0,0,0,0.85);
+      filter: brightness(0.4) blur(2px);
+      z-index: 1;
+    }
+
+    .loading-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .loading-pulse {
+      position: relative;
+      opacity: 0.9;
+      animation: pulse 4.5s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px rgba(0,0,0,0.7));
+    }
+
+    #loading-screen img.loading-pulse {
+      width: 400px !important;
+      height: 400px !important;
+      max-width: none !important;
+      max-height: none !important;
+      object-fit: contain;
+      display: block;
+    }
+
+    .loading-text {    
+      font-size: 40px;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      text-shadow: 0 0 10px rgba(0,0,0,0.9);
+      font-weight: bold;
+      z-index: 3;
+      pointer-events: none;
+    }
+    
+    @keyframes pulse {
+      0%   { transform: scale(1.00); opacity: 0.92; }
+      50%  { transform: scale(1.03); opacity: 1.0; }
+      100% { transform: scale(1.00); opacity: 0.92; }
+    }
+
+    /* Top bar */
+    #top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: rgba(0, 0, 0, 0.9);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 9000;
+      font-family: Arial, sans-serif;
+      color: #f5f5f5;
+      gap: 10px;
+      box-sizing: border-box;
+    }
+    #top-bar .top-title {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    #top-bar .top-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 68px;
+      min-width: 180px;
+    }
+    .top-logo {
+      height: calc(100% - 6px);
+      margin: 3px 0;
+      width: auto;
+      object-fit: contain;
+    }
+
+    #top-bar .top-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    #neighborhood-select,
+    #type-filter,
+    #sort-select {
+      background: #1b1b1b;
+      color: #f5f5f5;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+    }
+    #neighborhood-select:focus,
+    #type-filter:focus,
+    #sort-select:focus {
+      outline: none;
+      border-color: #ffffff;
+    }
+
+    /* Search box styling */
+    #search-input {
+      background: #111;
+      color: #f5f5f5;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+      min-width: 160px;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    #search-input::placeholder {
+      color: #888;
+    }
+    #search-input:focus {
+      outline: none;
+    }
+    #search-input.search-visual-focus {
+      border-color: #ffffff;
+      box-shadow: 0 0 6px rgba(255,255,255,0.5);
+    }
+
+    /* Directory container replaces map */
+    #directory {
+      position: absolute;
+      top: 68px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 14px 14px 290px 14px; /* leave space for drawer */
+      box-sizing: border-box;
+      overflow-y: auto;
+      font-family: Arial, sans-serif;
+      color: #eee;
+      background:
+        radial-gradient(circle at top, rgba(30,30,30,0.35), rgba(0,0,0,1) 55%),
+        #000;
+    }
+
+    .directory-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .directory-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fbac3a;
+    }
+    .directory-meta {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    /* Grid list */
+    .plot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 1100px) {
+      .plot-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .plot-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .plot-card {
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(10, 10, 10, 0.85);
+      padding: 10px 10px;
+      box-sizing: border-box;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .plot-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.30);
+      background: rgba(18, 18, 18, 0.95);
+    }
+
+    .plot-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .plot-emoji {
+      font-size: 22px;
+      line-height: 22px;
+      filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
+      flex: 0 0 auto;
+    }
+
+    .plot-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f5f5f5;
+      line-height: 1.25;
+      margin: 0 0 4px 0;
+    }
+
+    .plot-sub {
+      font-size: 12px;
+      color: #bbb;
+      margin: 0 0 8px 0;
+    }
+
+    .plot-info {
+      font-size: 13px;
+      color: #ddd;
+      line-height: 1.35;
+      max-height: 4.2em;
+      overflow: hidden;
+      opacity: 0.92;
+    }
+
+    .plot-tags {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 11px;
+      color: #ddd;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.35);
+      padding: 2px 6px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .tag.type {
+      color: #fbac3a;
+      border-color: rgba(251, 172, 58, 0.35);
+    }
+
+    /* Empty / error state */
+    .empty-state {
+      margin-top: 18px;
+      padding: 12px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      border-radius: 8px;
+      color: #aaa;
+      background: rgba(0,0,0,0.35);
+    }
+
+    /*  Bottom Drawer details/photos */
+    #bottom-drawer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.96);
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.9);
+      z-index: 9500;
+      display: flex;
+      flex-direction: column;
+      transition: height 0.25s ease;
+      height: 275px;
+      font-family: Arial, sans-serif;
+    }
+
+    #bottom-drawer.collapsed {
+      height: 32px;
+    }
+
+    #drawer-header::before {
+      display: none !important;
+    }
+    #drawer-header {
+      position: relative;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #ccc;
+      background: linear-gradient(to top, #000 0%, #141414 60%);
+    }
+
+    #drawer-chevron {
+      font-size: 28px;
+      opacity: 0.9;
+      margin-top: 8px;
+    }
+
+    #drawer-body {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      padding: 8px 10px 10px 10px;
+      gap: 10px;
+      box-sizing: border-box;
+    }
+
+    /* Bottom drawer - LEFT details */
+    .drawer-left {
+      flex: 1;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(8, 8, 8, 0.95);
+      display: flex;
+      flex-direction: column;
+      padding: 10px 12px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    #drawer-plot-title {
+      font-size: 20px; 
+      font-weight: 600;
+      color: #fbac3a;
+      margin-bottom: 6px;
+    }
+
+    #drawer-plot-owner {
+      font-size: 16px;
+      color: #ccc;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    #drawer-plot-info {
+      font-size: 16px;
+      color: #ddd;
+      line-height: 1.5;
+      overflow-y: auto;
+    }
+
+    /* Bottom Drawer - RIGHT photos */
+    .drawer-right {
+      flex: 0 0 55%;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: radial-gradient(circle at top, #222 0, #050505 60%);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #drawer-images {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px 6px 16px; 
+      overflow-x: auto;
+      box-sizing: border-box;
+    }
+
+    #drawer-images img {
+      max-height: 150px;
+      width: auto;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+      object-fit: contain;
+      cursor: pointer;
+    }
+
+    #drawer-images-placeholder {
+      padding: 8px 12px;
+      font-size: 14px; 
+      color: #aaa;
+    }
+
+    @media (max-width: 800px) {
+      #drawer-body {
+        flex-direction: column;
+      }
+      .drawer-right {
+        flex: 0 0 auto;
+      }
+      #drawer-images img {
+        max-height: 110px;
+      }
+    }
+
+    /* Fullscreen lightbox for clicked thumbnails */
+    #image-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    
+    .lightbox-inner {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    #image-lightbox img {
+      max-width: 100% !important;
+      max-height: 80vh !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      display: block;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
+    }
+    
+    #lightbox-close {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.9);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="top-bar">
+    <div class="top-left">
+      <img src="assets/logo.png" alt="Logo" class="top-logo">
+      <div class="top-title">KoG Housing</div>
+    </div>
+
+    <div class="top-right">
+      <select id="neighborhood-select">
+        <option value="Subdivision 1">Subdivision 1</option>
+        <option value="Subdivision 2">Subdivision 2</option>
+        <option value="Subdivision 3">Subdivision 3</option>
+        <option value="Subdivision 4">Subdivision 4</option>
+      </select>
+
+      <select id="type-filter">
+        <option value="">All Types</option>
+      </select>
+
+      <select id="sort-select">
+        <option value="title-asc">Sort: Title A→Z</option>
+        <option value="title-desc">Sort: Title Z→A</option>
+        <option value="plot-asc">Sort: Plot # ↑</option>
+        <option value="plot-desc">Sort: Plot # ↓</option>
+        <option value="type-asc">Sort: Type A→Z</option>
+      </select>
+
+      <input id="search-input" type="text" placeholder="Search plots...">
+    </div>
+  </div>
+
+  <div id="loading-screen">
+    <div class="loading-bg"></div>
+    <div class="loading-content">
+      <img src="assets/loadinglogo.png" alt="Loading…" class="loading-pulse">
+      <div class="loading-text">LOADING</div>
+    </div>
+  </div>
+
+  <!-- Directory replaces map -->
+  <div id="directory">
+    <div class="directory-header">
+      <div>
+        <div class="directory-title" id="directory-title">Subdivision 1 Directory</div>
+        <div class="directory-meta" id="directory-meta">Loading plots…</div>
+      </div>
+      <div class="directory-meta" id="directory-meta-right"></div>
+    </div>
+
+    <div class="plot-grid" id="plot-grid"></div>
+    <div class="empty-state" id="empty-state" style="display:none;"></div>
+  </div>
+
+  <!-- Bottom Drawer -->
+  <div id="bottom-drawer" class="collapsed">
+    <div id="drawer-header">
+      <span id="drawer-chevron">▲</span>
+    </div>
+    <div id="drawer-body">
+      <!-- DETAILS LEFT -->
+      <div class="drawer-left">
+        <div id="drawer-plot-title">No plot selected</div>
+        <div id="drawer-plot-owner"></div>
+        <div id="drawer-plot-info"></div>
+      </div>
+      <!-- THUMBNAILS RIGHT -->
+      <div class="drawer-right">
+        <div id="drawer-images"></div>
+        <div id="drawer-images-placeholder">Click a plot to view any available images.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen lightbox -->
+  <div id="image-lightbox">
+    <div class="lightbox-inner">
+      <img id="lightbox-image" src="" alt="Plot image">
+      <button id="lightbox-close" type="button">×</button>
+    </div>
+  </div>
+
+  <script>
+    const DATA_URL = 'https://script.google.com/macros/s/AKfycbx4mYuCwK4vJzNZ9tGvc0I_xvtBkQ2XyobdeTKmR0RT_1_WOi4dLNPVEScFxrvrUWVFMQ/exec';
+
+    // Loading Screen
+    function showLoadingScreen() {
+      const el = document.getElementById('loading-screen');
+      if (el) el.style.display = 'flex';
+    }
+
+    function hideLoadingScreen() {
+      const el = document.getElementById('loading-screen');
+      if (el) el.style.display = 'none';
+    }
+
+    // Markup Formatting
+    function formatInfoText(raw) {
+      if (!raw) return '';
+
+      let txt = raw
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      txt = txt.replace(/\r\n|\r|\n/g, '<br>');
+      txt = txt.replace(/\*\*\*([\s\S]+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      txt = txt.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+      txt = txt.replace(/\*([\s\S]+?)\*/g, '<em>$1</em>');
+      txt = txt.replace(/__([\s\S]+?)__/g, '<u>$1</u>');
+      txt = txt.replace(/~~([\s\S]+?)~~/g, '<s>$1</s>');
+
+      return txt;
+    }
+
+    // Drawer 
+    const bottomDrawer = document.getElementById('bottom-drawer');
+    const drawerHeader = document.getElementById('drawer-header');
+    const drawerChevron = document.getElementById('drawer-chevron');
+    const drawerImages  = document.getElementById('drawer-images');
+    const drawerImagesPlaceholder = document.getElementById('drawer-images-placeholder');
+    const drawerPlotTitle = document.getElementById('drawer-plot-title');
+    const drawerPlotOwner = document.getElementById('drawer-plot-owner');
+    const drawerPlotInfo  = document.getElementById('drawer-plot-info');
+
+    drawerHeader.addEventListener('click', function () {
+      var collapsed = bottomDrawer.classList.toggle('collapsed');
+      drawerChevron.textContent = collapsed ? '▲' : '▼';
+    });
+
+    function expandDrawer() {
+      bottomDrawer.classList.remove('collapsed');
+      drawerChevron.textContent = '▼';
+    }
+
+    // Lightbox 
+    const lightbox       = document.getElementById('image-lightbox');
+    const lightboxImage  = document.getElementById('lightbox-image');
+    const lightboxClose  = document.getElementById('lightbox-close');
+
+    function openLightbox(src) {
+      lightboxImage.src = src;
+      lightbox.style.display = 'flex';
+    }
+
+    function closeLightbox() {
+      lightbox.style.display = 'none';
+      lightboxImage.src = '';
+    }
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+    // ---------- Data Helpers ----------
+    function getSubdivisionIndexFromName(name) {
+      var m = (name || '').match(/(\d+)/);
+      return m ? m[1] : 1;
+    }
+
+    function extractPlotNumber(row) {
+      if (row.owner !== undefined && row.owner !== null) {
+        let v = String(row.owner).trim();
+        v = v.replace(/^plot\s*/i, '');
+        return v;
+      }
+      return null;
+    }
+
+    function safeString(v) {
+      return (v === undefined || v === null) ? '' : String(v);
+    }
+
+    function numericPlot(plotNumber) {
+      // helps sorting; if plot is "12A" it becomes 12, etc
+      const n = parseFloat(String(plotNumber || '').match(/[\d.]+/)?.[0]);
+      return isNaN(n) ? null : n;
+    }
+
+    // Plot Image Loader
+    function showPlotImages(subIndex, plotNumber, title, owner, info) {
+      drawerImages.innerHTML = '';
+      drawerImagesPlaceholder.style.display = 'block';
+      drawerImagesPlaceholder.textContent = 'Looking for images for this plot...';
+
+      var sub = subIndex || 1;
+
+      drawerPlotTitle.textContent = title || 'Plot';
+
+      if (plotNumber != null && plotNumber !== '') {
+        drawerPlotOwner.textContent = 'Subdivision ' + sub + ' · Plot ' + plotNumber;
+      } else {
+        drawerPlotOwner.textContent = '';
+      }
+
+      drawerPlotInfo.innerHTML = formatInfoText(info || '');
+
+      if (plotNumber == null || plotNumber === '') {
+        drawerImagesPlaceholder.textContent = 'No plot number found for this entry.';
+        return;
+      }
+
+      var maxImages = 6;
+      var loadedCount = 0;
+      var attempted = 0;
+      var loadedImages = [];
+
+      function finalizeImageList() {
+        if (attempted < maxImages) return;
+
+        if (loadedCount === 0) {
+          drawerImagesPlaceholder.style.display = 'block';
+          drawerImagesPlaceholder.textContent = 'No images found for this plot.';
+          return;
+        }
+
+        loadedImages.sort(function(a, b) {
+          return a.index - b.index;
+        });
+
+        drawerImages.innerHTML = '';
+        loadedImages.forEach(function(item) {
+          drawerImages.appendChild(item.img);
+        });
+      }
+
+      function onFinishedAttempt() {
+        attempted++;
+        finalizeImageList();
+      }
+
+      for (let i = 1; i <= maxImages; i++) {
+        let img = new Image();
+        let src = 'assets/plots/' + sub + '-' + plotNumber + '-' + i + '.jpg';
+        img.src = src;
+
+        img.onload = function () {
+          loadedCount++;
+          drawerImagesPlaceholder.style.display = 'none';
+
+          img.addEventListener('click', function () {
+            openLightbox(src);
+          });
+
+          loadedImages.push({ index: i, img: img });
+          onFinishedAttempt();
+        };
+
+        img.onerror = function () {
+          onFinishedAttempt();
+        };
+      }
+    }
+
+    // ---------- Directory Rendering ----------
+    const gridEl = document.getElementById('plot-grid');
+    const emptyEl = document.getElementById('empty-state');
+    const dirTitleEl = document.getElementById('directory-title');
+    const metaEl = document.getElementById('directory-meta');
+    const metaRightEl = document.getElementById('directory-meta-right');
+
+    const typeFilterEl = document.getElementById('type-filter');
+    const sortEl = document.getElementById('sort-select');
+    const searchEl = document.getElementById('search-input');
+
+    let currentSubdivisionIndex = 1;
+    let allRows = [];   
+    let filteredRows = []; 
+
+    function buildTypeFilterOptions(rows) {
+      const types = new Set();
+      rows.forEach(r => {
+        const t = safeString(r.type).trim();
+        if (t) types.add(t);
+      });
+
+      const sorted = Array.from(types).sort((a, b) => a.localeCompare(b));
+
+      // Preserve current selection if possible
+      const current = typeFilterEl.value;
+
+      typeFilterEl.innerHTML = '';
+      const allOpt = document.createElement('option');
+      allOpt.value = '';
+      allOpt.textContent = 'All Types';
+      typeFilterEl.appendChild(allOpt);
+
+      sorted.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        typeFilterEl.appendChild(opt);
+      });
+
+      if ([...typeFilterEl.options].some(o => o.value === current)) {
+        typeFilterEl.value = current;
+      } else {
+        typeFilterEl.value = '';
+      }
+    }
+
+    function normalizeRows(markers) {
+      return (markers || []).map(row => {
+        const rawTitle = safeString(row.title) || 'Unknown';
+        const plotNumber = extractPlotNumber(row);
+        return {
+          rawTitle,
+          titleShort: rawTitle.length > 50 ? rawTitle.substring(0, 48) + '…' : rawTitle,
+          info: safeString(row.info),
+          owner: safeString(row.owner),
+          type: safeString(row.type),
+          plotNumber: plotNumber,
+          plotNumberNumeric: numericPlot(plotNumber),
+        };
+      });
+    }
+
+    function renderDirectory(rows) {
+      gridEl.innerHTML = '';
+      emptyEl.style.display = 'none';
+
+      metaEl.textContent = rows.length + ' plots shown';
+      metaRightEl.textContent = 'Click a plot to open details';
+
+      if (!rows.length) {
+        emptyEl.style.display = 'block';
+        emptyEl.innerHTML =
+          '<strong>No results.</strong><br>';
+        return;
+      }
+
+      rows.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'plot-card';
+
+        const emoji = safeString(r.type).trim() || '•';
+
+        // Preview text (plain, trimmed)
+        let preview = safeString(r.info).trim();
+        if (preview.length > 170) preview = preview.substring(0, 165) + '…';
+        preview = preview.replace(/\r\n|\r|\n/g, ' ');
+
+        const subTextParts = [];
+        if (r.plotNumber) subTextParts.push('Plot ' + r.plotNumber);
+        if (safeString(r.owner).trim() && !r.plotNumber) subTextParts.push(safeString(r.owner).trim());
+
+        const subText = subTextParts.length ? subTextParts.join(' · ') : '—';
+
+        card.innerHTML = `
+          <div class="plot-top">
+            <div style="min-width:0;">
+              <div class="plot-title">${escapeHtml(r.titleShort)}</div>
+              <div class="plot-sub">Subdivision ${currentSubdivisionIndex} · ${escapeHtml(subText)}</div>
+            </div>
+            <div class="plot-emoji" title="${escapeHtml(emoji)}">${escapeHtml(emoji)}</div>
+          </div>
+
+          <div class="plot-info">${escapeHtml(preview || 'No description provided.')}</div>
+
+          <div class="plot-tags">
+            ${r.type ? `<span class="tag type">${escapeHtml(r.type)}</span>` : ''}
+            ${r.plotNumber ? `<span class="tag">Plot ${escapeHtml(r.plotNumber)}</span>` : ''}
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          expandDrawer();
+          showPlotImages(
+            currentSubdivisionIndex,
+            r.plotNumber,
+            r.rawTitle,
+            r.owner,
+            r.info
+          );
+        });
+
+        gridEl.appendChild(card);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Filtering / Sorting
+    function applyFilters() {
+      const q = (searchEl.value || '').trim().toLowerCase();
+      const type = (typeFilterEl.value || '').trim();
+      const sortMode = sortEl.value;
+
+      filteredRows = allRows.filter(r => {
+        if (type && safeString(r.type).trim() !== type) return false;
+
+        if (!q) return true;
+
+        const haystack = (
+          safeString(r.rawTitle) + ' ' +
+          safeString(r.owner) + ' ' +
+          safeString(r.info) + ' ' +
+          safeString(r.type) + ' ' +
+          safeString(r.plotNumber)
+        ).toLowerCase();
+
+        return haystack.indexOf(q) !== -1;
+      });
+
+      filteredRows.sort((a, b) => {
+        if (sortMode === 'title-asc') return a.rawTitle.localeCompare(b.rawTitle);
+        if (sortMode === 'title-desc') return b.rawTitle.localeCompare(a.rawTitle);
+
+        if (sortMode === 'type-asc') return safeString(a.type).localeCompare(safeString(b.type));
+
+        if (sortMode === 'plot-asc') {
+          const an = a.plotNumberNumeric;
+          const bn = b.plotNumberNumeric;
+          if (an == null && bn == null) return a.rawTitle.localeCompare(b.rawTitle);
+          if (an == null) return 1;
+          if (bn == null) return -1;
+          if (an !== bn) return an - bn;
+          return a.rawTitle.localeCompare(b.rawTitle);
+        }
+
+        if (sortMode === 'plot-desc') {
+          const an = a.plotNumberNumeric;
+          const bn = b.plotNumberNumeric;
+          if (an == null && bn == null) return a.rawTitle.localeCompare(b.rawTitle);
+          if (an == null) return 1;
+          if (bn == null) return -1;
+          if (an !== bn) return bn - an;
+          return a.rawTitle.localeCompare(b.rawTitle);
+        }
+
+        return 0;
+      });
+
+      renderDirectory(filteredRows);
+    }
+
+    // Load Subdivision
+    function loadNeighborhood(sheetName) {
+      showLoadingScreen();
+
+      currentSubdivisionIndex = getSubdivisionIndexFromName(sheetName);
+      dirTitleEl.textContent = sheetName + ' Directory';
+      metaEl.textContent = 'Loading plots…';
+      metaRightEl.textContent = '';
+
+      const url = DATA_URL + '?sheet=' + encodeURIComponent(sheetName);
+
+      fetch(url)
+        .then(function (response) {
+          if (!response.ok) throw new Error('Network response was not ok');
+          return response.json();
+        })
+        .then(function (data) {
+          allRows = normalizeRows(data.markers || []);
+          buildTypeFilterOptions(allRows);
+          applyFilters();
+          hideLoadingScreen();
+        })
+        .catch(function (error) {
+          console.error('Error fetching data:', error);
+          hideLoadingScreen();
+
+          allRows = [];
+          gridEl.innerHTML = '';
+          emptyEl.style.display = 'block';
+          emptyEl.innerHTML =
+            '<strong>Could not load this subdivision.</strong><br>' +
+            'Check the Google Apps Script URL and your sheet name.';
+          metaEl.textContent = 'Load failed';
+          metaRightEl.textContent = '';
+        });
+    }
+
+    // ---------- Wire up controls ----------
+    const neighborhoodSelect = document.getElementById('neighborhood-select');
+    neighborhoodSelect.addEventListener('change', function (e) {
+      loadNeighborhood(e.target.value);
+    });
+
+    typeFilterEl.addEventListener('change', applyFilters);
+    sortEl.addEventListener('change', applyFilters);
+
+    if (searchEl) {
+      searchEl.addEventListener('input', applyFilters);
+
+      searchEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') e.preventDefault();
+      });
+
+      searchEl.addEventListener('focus', function () {
+        searchEl.classList.add('search-visual-focus');
+      });
+      searchEl.addEventListener('blur', function () {
+        searchEl.classList.remove('search-visual-focus');
+      });
+    }
+
+    window.addEventListener('load', function () {
+      loadNeighborhood('Subdivision 1');
+    });
+  </script>
+</body>
+</html>
