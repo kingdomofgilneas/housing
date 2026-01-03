@@ -570,6 +570,8 @@
     var imageUrl = 'assets/map.jpg';
     var imageOverlay = L.imageOverlay(imageUrl, mapBounds).addTo(map);
     map.fitBounds(mapBounds);
+    requestAnimationFrame(() => map.invalidateSize());
+    setTimeout(() => map.invalidateSize(), 50);
 
     function makeEmojiDot(emoji) {
       var em = emoji || '•';
