@@ -537,6 +537,9 @@
     function hideLoadingScreen() {
       const el = document.getElementById('loading-screen');
       if (el) el.style.display = 'none';
+
+      // Fix map size on load.
+      requestAnimationFrame(() => map.invalidateSize());
     }
 
     // Markup Formatting
