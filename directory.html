@@ -169,7 +169,7 @@
     #sidebar {
       flex: 0 0 40%;
       max-width: 40%;
-      min-width: 320px;
+      min-width: 460px;
       border-right: 1px solid rgba(255,255,255,0.14);
       background: rgba(0,0,0,0.55);
       display: flex;
@@ -206,17 +206,17 @@
     }
 
     .plot-row {
-      border-radius: 10px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.14);
       background: rgba(10, 10, 10, 0.85);
-      padding: 12px 12px;
+      padding: 14px 14px;
       box-sizing: border-box;
       cursor: pointer;
       transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
       overflow: hidden;
       position: relative;
       display: flex;
-      gap: 12px;
+      gap: 14px;
       align-items: flex-start;
     }
 
@@ -233,11 +233,13 @@
     }
 
     .row-emoji {
-      font-size: 24px;
-      line-height: 24px;
+      width: 36px;
+      text-align: center;
+      font-size: 26px;
+      line-height: 26px;
       filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
-      flex: 0 0 auto;
-      margin-top: 2px;
+      flex: 0 0 36px;
+      margin-top: 4px;
     }
 
     .row-main {
@@ -246,32 +248,35 @@
     }
 
     .row-title {
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 16px;
+      font-weight: 800;
       color: #f5f5f5;
       line-height: 1.25;
-      margin: 0 0 5px 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      margin: 0 0 6px 0;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      word-break: break-word;
     }
 
     .row-sub {
       font-size: 13px;
       color: #bbb;
-      margin: 0 0 8px 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      margin: 0 0 10px 0;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      word-break: break-word;
     }
 
     .row-preview {
-      font-size: 12px;
+      font-size: 13px;
       color: #d6d6d6;
-      line-height: 1.4;
-      max-height: 2.9em;
-      overflow: hidden;
+      line-height: 1.45;
+      max-height: none;
+      overflow: visible;
       opacity: 0.92;
+      word-break: break-word;
     }
 
     #content {
@@ -728,7 +733,7 @@
         const emoji = safeString(r.type).trim() || '•';
 
         let preview = safeString(r.info).trim();
-        if (preview.length > 140) preview = preview.substring(0, 136) + '…';
+        if (preview.length > 320) preview = preview.substring(0, 316) + '…';
         preview = preview.replace(/\r\n|\r|\n/g, ' ');
 
         const subTextParts = [];
