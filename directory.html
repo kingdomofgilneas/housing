@@ -891,7 +891,7 @@
       photosPlaceholderEl.style.display = 'block';
       photosPlaceholderEl.textContent = 'Looking for images for this plot...';
 
-      const sub = row.subdivisionIndex || 1;
+      const sub = (safeString(row.subdivisionName).trim() === 'Other Locations') ? 'Other' : (row.subdivisionIndex || 1);
       const plotNumber = row.plotNumber;
 
       if (plotNumber == null || plotNumber === '') {
@@ -1097,7 +1097,8 @@
         'Subdivision 1',
         'Subdivision 2',
         'Subdivision 3',
-        'Subdivision 4'
+        'Subdivision 4',
+        'Other Locations'
       ]);
     });
   </script>
