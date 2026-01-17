@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SK9CJJSNHX"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-  
-    gtag('config', 'G-SK9CJJSNHX');
-  </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>The Neighborhoods of Gilneas</title>
@@ -479,7 +470,49 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.9);
     }
 
-    /* Top-left "Directory View" link button */
+      #lightbox-prev,
+      #lightbox-next {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.25);
+        background: rgba(0,0,0,0.60);
+        color: #fff;
+        font-size: 28px;
+        line-height: 44px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 0 14px rgba(0,0,0,0.85);
+        user-select: none;
+        display: none;         /* shown only if >1 image */
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+  
+      #lightbox-prev { left: 10px; }
+      #lightbox-next { right: 10px; }
+  
+      #lightbox-prev:hover,
+      #lightbox-next:hover {
+        background: rgba(0,0,0,0.80);
+        border-color: rgba(255,255,255,0.45);
+      }
+  
+      @media (max-width: 680px) {
+        #lightbox-prev,
+        #lightbox-next {
+          width: 40px;
+          height: 40px;
+          font-size: 26px;
+          line-height: 40px;
+        }
+      }
+
+
     .top-button {
       appearance: none;
       display: inline-flex;
@@ -575,10 +608,13 @@
 
   <div id="image-lightbox">
     <div class="lightbox-inner">
+      <button id="lightbox-prev" type="button" aria-label="Previous image">‹</button>
       <img id="lightbox-image" src="" alt="Plot image">
+      <button id="lightbox-next" type="button" aria-label="Next image">›</button>
       <button id="lightbox-close" type="button">×</button>
     </div>
   </div>
+
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -718,24 +754,76 @@
     const lightbox       = document.getElementById('image-lightbox');
     const lightboxImage  = document.getElementById('lightbox-image');
     const lightboxClose  = document.getElementById('lightbox-close');
+    const lightboxPrev   = document.getElementById('lightbox-prev');
+    const lightboxNext   = document.getElementById('lightbox-next');
 
-    function openLightbox(src) {
-      lightboxImage.src = src;
+    let currentLightboxImages = [];
+    let currentLightboxIndex = 0;
+    updateLightboxNavVisibility();
+
+    function updateLightboxNavVisibility() {
+      const show = currentLightboxImages && currentLightboxImages.length > 1;
+      lightboxPrev.style.display = show ? 'flex' : 'none';
+      lightboxNext.style.display = show ? 'flex' : 'none';
+    }
+
+    function openLightboxAtIndex(index) {
+      if (!currentLightboxImages || currentLightboxImages.length === 0) return;
+      const max = currentLightboxImages.length - 1;
+      currentLightboxIndex = Math.max(0, Math.min(index, max));
+      lightboxImage.src = currentLightboxImages[currentLightboxIndex];
       lightbox.style.display = 'flex';
+      updateLightboxNavVisibility();
+    }
+
+    function showNext() {
+      if (!currentLightboxImages || currentLightboxImages.length < 2) return;
+      currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+      lightboxImage.src = currentLightboxImages[currentLightboxIndex];
+    }
+
+    function showPrev() {
+      if (!currentLightboxImages || currentLightboxImages.length < 2) return;
+      currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+      lightboxImage.src = currentLightboxImages[currentLightboxIndex];
     }
 
     function closeLightbox() {
       lightbox.style.display = 'none';
       lightboxImage.src = '';
+      currentLightboxIndex = 0;
     }
 
-    lightboxClose.addEventListener('click', closeLightbox);
+    lightboxPrev.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showPrev();
+    });
+
+    lightboxNext.addEventListener('click', function (e) {
+      e.stopPropagation();
+      showNext();
+    });
+
+    lightboxImage.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+
+    lightboxClose.addEventListener('click', function (e) {
+      e.stopPropagation();
+      closeLightbox();
+    });
+
     lightbox.addEventListener('click', function (e) {
       if (e.target === lightbox) closeLightbox();
     });
+
     document.addEventListener('keydown', function (e) {
+      if (lightbox.style.display !== 'flex') return;
       if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') showPrev();
+      if (e.key === 'ArrowRight') showNext();
     });
+
 
     function extractPlotNumber(row, rawTitle) {
       if (row.owner !== undefined && row.owner !== null) {
@@ -767,6 +855,9 @@
 
       if (plotNumber == null || plotNumber === '') {
         drawerImagesPlaceholder.textContent = 'No plot number found for this marker.';
+        currentLightboxImages = [];
+        currentLightboxIndex = 0;
+        updateLightboxNavVisibility();
         return;
       }
 
@@ -789,6 +880,7 @@
           console.error(err);
           drawerImagesPlaceholder.style.display = 'block';
           drawerImagesPlaceholder.textContent = 'Could not load images for this plot.';
+          updateLightboxNavVisibility();
         });
     }
 
@@ -832,14 +924,20 @@
         drawerImagesPlaceholder.style.display = 'none';
 
         var list = groups[name] || [];
-        list.forEach(function (item) {
+        currentLightboxImages = list.map(function (item) {
+          return item.thumbUrl ? item.thumbUrl.replace('sz=w1200','sz=w3000') : item.url;
+        });
+        currentLightboxIndex = 0;
+        updateLightboxNavVisibility();
+
+        list.forEach(function (item, index) {
           var el = document.createElement('img');
           el.src = item.thumbUrl || item.url;
           el.referrerPolicy = 'no-referrer';
           el.alt = item.name || 'Plot image';
 
           el.addEventListener('click', function () {
-            openLightbox(item.thumbUrl ? item.thumbUrl.replace('sz=w1200','sz=w3000') : item.url);
+            openLightboxAtIndex(index);
           });
 
           drawerImagesGrid.appendChild(el);
