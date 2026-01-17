@@ -478,6 +478,49 @@
       justify-content: center;
       box-shadow: 0 0 10px rgba(0,0,0,0.9);
     }
+
+    /* Top-left "Directory View" link button */
+    .top-button {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    
+      background: rgba(0, 0, 0, 0.35);
+      color: #ddd;
+      text-decoration: none;
+    
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+    
+      padding: 7px 12px;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+      line-height: 1;
+    
+      cursor: pointer;
+    
+      transition:
+        filter 0.15s ease,
+        background 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+    
+    .top-button:hover {
+      filter: brightness(1.15);
+      border-color: rgba(251, 172, 58, 0.55);
+    }
+    
+    .top-button:active {
+      filter: brightness(1.05);
+    }
+    
+    .top-button:focus {
+      outline: none;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.35);
+    }
+
   </style>
 </head>
 <body>
@@ -485,6 +528,9 @@
     <div class="top-left">
       <img src="assets/logo.png" alt="Logo" class="top-logo">
       <div class="top-title">KoG Housing</div>
+      <a href="directory.html" class="top-button">
+        Directory View
+      </a>
     </div>
     <div class="top-right">
       <select id="neighborhood-select">
